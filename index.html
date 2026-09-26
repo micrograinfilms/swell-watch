@@ -60,7 +60,14 @@ h1,h2{margin:0;font-weight:400}
 @media (prefers-reduced-motion:reduce){.blink,#gauge.loading #g-verb{animation:none}#g-arc{transition:none}}
 .spotname{font-family:var(--pix);font-size:22px;line-height:1;color:var(--teal);letter-spacing:.02em}
 .conf{display:inline-block;align-self:flex-start;font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;padding:6px 10px;color:var(--bg);background:var(--dim);margin-top:4px}
-.conf.hi{background:var(--green)}.conf.md{background:var(--gold)}.conf.lo{background:var(--red)}
+.conf.hi{background:var(--green)}.conf.md{background:var(--gold)}.conf.lo{background:var(--red);--glow:rgba(255,92,77,.75)}
+@keyframes pulse{0%,100%{filter:brightness(1);box-shadow:0 0 0 0 var(--glow,rgba(255,160,46,.7))}50%{filter:brightness(1.4);box-shadow:0 0 18px 3px var(--glow,rgba(255,160,46,.7))}}
+@keyframes pulsetext{0%,100%{text-shadow:0 0 0 rgba(255,160,46,0)}50%{text-shadow:0 0 12px rgba(255,160,46,.9),0 0 2px rgba(255,160,46,.9)}}
+.conf.lo,.pulse{animation:pulse 2.6s ease-in-out infinite}
+.hot{color:var(--bright)!important;font-weight:700;animation:pulsetext 2.6s ease-in-out infinite}
+tr.hotrow td{background:rgba(255,160,46,.06)}
+tr.hotrow td:first-child{box-shadow:inset 3px 0 0 var(--amber)}
+@media (prefers-reduced-motion:reduce){.conf.lo,.pulse,.hot{animation:none}.pulse{box-shadow:0 0 12px 2px var(--glow,rgba(255,160,46,.7))}}
 .note{font-size:12px;line-height:1.55;color:#A7A49B}
 .dash{border-top:1px dashed var(--line);padding-top:12px}
 .days{display:flex;gap:6px;align-items:flex-end;height:250px;border-bottom:1px solid var(--line);position:relative}
@@ -646,18 +653,31 @@ function hexCol(s){return s>=7?'#3DDC84':s>=4?'#E6B93D':'#FF5C4D';}
 function bestOfDay(d){const dl=hours.filter(h=>h.day===d);const day=dl.filter(h=>h.daylight);return (day.length?day:dl).reduce((a,b)=>b.score>a.score?b:a);}
 function bestOverall(){const dl=hours.filter(h=>h.daylight);return dl.length?dl.reduce((a,b)=>b.score>a.score?b:a):null;}
 
+function glowOf(s){return s>=7?'rgba(61,220,132,.75)':s>=4?'rgba(230,185,61,.75)':'rgba(255,92,77,.75)';}
+function windowOf(list){ // contiguous daylight run around the best hour, same rule as the verdict
+  const dl=list.filter(h=>h.daylight);if(!dl.length)return null;
+  const best=dl.reduce((a,b)=>b.score>a.score?b:a);const i=list.indexOf(best);let a=i,b=i;const floor=Math.max(4,best.score-2);
+  while(a>0&&list[a-1].daylight&&list[a-1].score>=floor)a--;
+  while(b<list.length-1&&list[b+1].daylight&&list[b+1].score>=floor)b++;
+  return {from:list[a].t,to:list[b].t,best};
+}
+function syncPulses(){ // start every pulse at the same point in its cycle so they breathe together
+  const off=-(performance.now()%2600)+'ms';
+  document.querySelectorAll('.conf.lo,.pulse,.hot').forEach(e=>{e.style.animationDelay=off;});
+}
 function renderDays(){
   const days=[...new Set(hours.map(h=>h.day))].slice(0,10);
   const el=$('days');el.innerHTML='';
   const H=el.clientHeight||230;const barMax=H-70; // room above the bars for score and date
+  const top=bestOverall();const topDay=top?top.day:null;
   days.forEach(d=>{
-    const best=bestOfDay(d);const dt=new Date(d+'T12:00');
+    const best=bestOfDay(d);const dt=new Date(d+'T12:00');const isTop=d===topDay;
     const b=document.createElement('button');b.type='button';b.className='day'+(d===selDay?' sel':'');b.setAttribute('aria-label',`${fmtDay(d)}, score ${best.score.toFixed(1)}`);
-    b.innerHTML=`<div class="sc" style="color:${cssCol(best.score)}">${best.score.toFixed(1)}</div><div class="dn">${fmtDayShort(d)}<small>${dt.toLocaleDateString('en-US',{month:'short',day:'numeric'})}</small></div><div class="barwrap"><div class="bar" style="height:${Math.max(3,best.score/10*barMax).toFixed(0)}px;background:${cssCol(best.score)}"></div></div>`;
+    b.innerHTML=`<div class="sc${isTop?' hot':''}" style="color:${cssCol(best.score)}">${best.score.toFixed(1)}</div><div class="dn">${fmtDayShort(d)}<small>${dt.toLocaleDateString('en-US',{month:'short',day:'numeric'})}</small></div><div class="barwrap"><div class="bar${isTop?' pulse':''}" style="height:${Math.max(3,best.score/10*barMax).toFixed(0)}px;background:${cssCol(best.score)};--glow:${glowOf(best.score)}"></div></div>`;
     b.addEventListener('click',()=>{selDay=d;renderDays();renderDetail();});
     el.appendChild(b);
   });
-  renderDials();
+  renderDials();syncPulses();
 }
 function arcDash(frac,r){const c=2*Math.PI*r;return `${Math.max(0,Math.min(1,frac))*c} ${c}`;}
 function renderDials(){
@@ -684,12 +704,13 @@ function renderDetail(){
   $('d-title').textContent=`${fmtDay(selDay)} · hour by hour`;
   const dl=all.filter(h=>h.daylight);$('d-sun').textContent=dl.length?`sun ${new Date(dl[0].t).getHours()} to ${new Date(dl[dl.length-1].t).getHours()+1} h`:'6 to 18 h';
   const strip=$('strip'),hrs=$('hours');strip.innerHTML='';hrs.innerHTML='';
-  all.filter(h=>{const hr=new Date(h.t).getHours();return hr>=6&&hr<=18;}).forEach(h=>{const d=document.createElement('div');d.style.height=Math.max(3,h.score*15)+'px';if(h.daylight)d.style.background=cssCol(h.score);else d.className='night';d.title=`${fmtHr(h.t)} score ${h.score}`;strip.appendChild(d);const s=document.createElement('span');s.textContent=new Date(h.t).getHours();hrs.appendChild(s);});
+  const win=windowOf(all);const inWin=h=>win&&h.t>=win.from&&h.t<=win.to;
+  all.filter(h=>{const hr=new Date(h.t).getHours();return hr>=6&&hr<=18;}).forEach(h=>{const d=document.createElement('div');d.style.height=Math.max(3,h.score*15)+'px';if(h.daylight)d.style.background=cssCol(h.score);else d.className='night';if(inWin(h)){d.classList.add('pulse');d.style.setProperty('--glow',glowOf(h.score));}d.title=`${fmtHr(h.t)} score ${h.score}`;strip.appendChild(d);const s=document.createElement('span');s.textContent=new Date(h.t).getHours();if(inWin(h))s.className='hot';hrs.appendChild(s);});
   const bd=dl.length?dl.reduce((a,b)=>b.score>a.score?b:a):null;
   $('d-why').innerHTML=bd?whyText(bd).split(', ').map(w=>`<span><span style="color:${cssCol(bd.score)}">■</span> ${w}</span>`).join(''):'';
   const tb=$('htab').querySelector('tbody');tb.innerHTML='';
   dh.forEach(h=>{
-    const tr=document.createElement('tr');if(!h.daylight)tr.className='night';
+    const tr=document.createElement('tr');if(!h.daylight)tr.className='night';if(inWin(h))tr.classList.add('hotrow');
     const two=x=>x&&x.parts.length?x.parts.slice(0,2).map(comp).join('<br>'):'—';
     const tb0=h.B&&h.B.parts[0];const spotSwell=tb0?`${fmtH(tb0.H)} @ ${tb0.T.toFixed(0)} s ${compass(tb0.D)}`:'none';
     tr.innerHTML=`<td>${fmtHr(h.t)}</td><td class="n" style="color:${h.daylight?cssCol(h.score):'inherit'}"><strong>${h.score.toFixed(1)}</strong></td><td>${faceText(h)||'—'}</td><td>${spotSwell}</td><td>${h.spd!=null?Math.round(h.spd)+' kn '+compass(h.wdir):'—'}</td><td>${h.tf.label}</td><td class="whyc">${whyText(h)}</td>`+
@@ -699,6 +720,7 @@ function renderDetail(){
   const tt=$('tides');const S=SPOTS[spotKey];
   if(data.tides){const dt=data.tides.filter(p=>p.t.startsWith(selDay));tt.textContent=S.tide.name+' tides: '+(dt.length?dt.map(p=>`${p.type==='H'?'High':'Low'} ${p.t.slice(11,16)} (${p.v.toFixed(1)} ft)`).join(' · '):'none listed');}
   else tt.textContent='Tides unavailable.';
+  syncPulses();
 }
 function confidenceFor(h){
   const ests=[h.sA,h.sB,h.sC].filter(v=>v!=null);
@@ -725,7 +747,7 @@ function renderVerdict(){
   $('v-verb').textContent=verb;$('v-verb').style.color=c;
   $('v-when').textContent=`${fmtDay(best.day)} · ${fmtHr(hours[a].t)} to ${fmtHr(hours[b].t)}`;
   $('v-spot').textContent=SPOTS[spotKey].name.toUpperCase();
-  const cf=confidenceFor(best);const ce=$('v-conf');ce.className='conf '+cf.cls;ce.textContent='Confidence '+cf.label;ce.title=cf.reasons.join('; ');
+  const cf=confidenceFor(best);const ce=$('v-conf');ce.className='conf '+cf.cls;ce.textContent='Confidence '+cf.label;ce.title=cf.reasons.join('; ');syncPulses();
   const f=faceEstimate(best);
   $('v-face').textContent=f?fmtH(f.m,0).replace(/ (ft|m)$/,''):'—';
   $('v-guess').innerHTML=f&&!f.calibrated?'<span class="guess">GUESS</span>':'';
