@@ -1,0 +1,697 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0C171E">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Swell Watch">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon.png">
+<title>Swell Watch</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+:root{
+  --bg:#F2F5F4; --panel:#FFFFFF; --ink:#12242F; --muted:#5A6E78; --line:#D6DEE0;
+  --accent:#1F7A80; --accent-ink:#0F4E52; --good:#2E8B57; --ok:#C9A227; --bad:#B8552F; --flat:#8A98A0;
+  --strip:#E6EDEE; --mono:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --bg:#0C171E; --panel:#132330; --ink:#E6EEF1; --muted:#96A9B3; --line:#24384A;
+    --accent:#4FB3B8; --accent-ink:#8FD8DB; --good:#5DBD84; --ok:#D9B84A; --bad:#D9764F; --flat:#7C8B93; --strip:#1A2C3A;
+    color-scheme:dark;
+  }
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font-family:'IBM Plex Sans',system-ui,sans-serif;font-size:15px;line-height:1.5;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+.wrap{max-width:1140px;margin:0 auto;padding-inline:16px;padding-block:20px 48px;display:grid;gap:20px}
+h1,h2,h3{font-family:'Sora',system-ui,sans-serif;text-wrap:balance;margin:0}
+h1{font-size:1.6rem;font-weight:700;letter-spacing:-.01em}
+h2{font-size:1.05rem;font-weight:600}
+p{margin:0;max-width:72ch}
+.eyebrow{font-family:var(--mono);font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.muted{color:var(--muted)}
+.mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
+header{display:grid;gap:8px}
+.spots{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.spot{font:inherit;font-family:'Sora',system-ui,sans-serif;font-weight:600;font-size:.85rem;padding:7px 12px;border:1px solid var(--line);background:var(--panel);color:var(--ink);cursor:pointer}
+.spot.sel{background:var(--accent);border-color:var(--accent);color:#fff}
+.spot:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.grp{font-family:var(--mono);font-size:.68rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-right:4px}
+.sep{width:100%;height:0}
+.status{display:flex;flex-wrap:wrap;gap:4px 14px;font-family:var(--mono);font-size:.72rem;color:var(--muted)}
+.status span::before{content:"";display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--flat);margin-right:6px;vertical-align:middle}
+.status span.on::before{background:var(--good)}
+.status span.err::before{background:var(--bad)}
+.verdict{background:var(--panel);border:1px solid var(--line);border-left:6px solid var(--accent);padding:16px 18px;display:grid;gap:8px}
+.verdict .big{font-family:'Sora',system-ui,sans-serif;font-size:1.2rem;font-weight:600}
+.conf{display:inline-block;padding:2px 9px;border-radius:999px;font-family:var(--mono);font-size:.74rem;letter-spacing:.04em;color:#fff;background:var(--flat)}
+.conf.hi{background:var(--good)} .conf.md{background:var(--ok);color:#1A1A1A} .conf.lo{background:var(--bad)}
+.days{display:grid;grid-template-columns:repeat(auto-fill,minmax(126px,1fr));gap:8px}
+.day{background:var(--panel);border:1px solid var(--line);padding:10px 10px 8px;cursor:pointer;display:grid;gap:4px;text-align:left;color:var(--ink);font:inherit}
+.day:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.day.sel{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
+.day .dn{font-family:'Sora',system-ui,sans-serif;font-weight:600;font-size:.95rem}
+.day .sc{font-family:var(--mono);font-size:1.5rem;line-height:1.1;font-variant-numeric:tabular-nums}
+.day .face{font-family:var(--mono);font-size:.8rem;color:var(--ink)}
+.day .ab{font-family:var(--mono);font-size:.68rem;color:var(--muted)}
+.day .sub{font-size:.74rem;color:var(--muted);line-height:1.3}
+.guess{font-family:var(--mono);font-size:.62rem;padding:0 4px;border:1px dashed var(--line);border-radius:3px;color:var(--muted);margin-left:4px}
+.panel{background:var(--panel);border:1px solid var(--line);padding:16px 18px;display:grid;gap:12px}
+.strip{display:grid;grid-template-columns:repeat(24,1fr);gap:2px;align-items:end;height:64px}
+.strip div{background:var(--strip);min-height:3px}
+.strip div.night{opacity:.35}
+.hours{font-family:var(--mono);font-size:.68rem;color:var(--muted);display:grid;grid-template-columns:repeat(24,1fr);gap:2px}
+.hours span{text-align:center}
+.tbl{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-family:var(--mono);font-size:.75rem;font-variant-numeric:tabular-nums}
+th,td{text-align:left;padding:5px 8px;border-bottom:1px solid var(--line);white-space:nowrap;vertical-align:top}
+th{font-weight:500;color:var(--muted);font-family:'IBM Plex Sans',system-ui,sans-serif;font-size:.7rem;letter-spacing:.04em;text-transform:uppercase}
+td.n,th.n{text-align:right}
+tr.night td{color:var(--muted)}
+.det{display:none}
+.showdet .det{display:table-cell}
+p.det{display:none}
+.showdet p.det{display:block}
+.why{white-space:normal;max-width:260px;font-family:'IBM Plex Sans',system-ui,sans-serif;font-size:.78rem}
+.tag{font-family:var(--mono);font-size:.66rem;padding:0 4px;border:1px solid var(--line);border-radius:3px;color:var(--muted)}
+.tag.in{border-color:var(--good);color:var(--good)}
+pre{font-family:var(--mono);font-size:.78rem;white-space:pre-wrap;margin:0;line-height:1.45;max-width:none}
+details>summary{cursor:pointer;font-family:'Sora',system-ui,sans-serif;font-weight:600;font-size:1.05rem}
+details.sm>summary{font-size:.9rem;font-weight:500;font-family:'IBM Plex Sans',system-ui,sans-serif}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px}
+.tune{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px 18px}
+.tune label{display:grid;gap:3px;font-size:.78rem;color:var(--muted)}
+.tune input{font:inherit;font-family:var(--mono);padding:5px 7px;border:1px solid var(--line);background:var(--bg);color:var(--ink);width:100%}
+.tune input:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+button.btn{font:inherit;font-family:'Sora',system-ui,sans-serif;font-weight:600;font-size:.85rem;background:var(--accent);color:#fff;border:0;padding:8px 14px;cursor:pointer}
+button.btn.sec{background:transparent;color:var(--accent-ink);border:1px solid var(--line)}
+button.btn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+a{color:var(--accent-ink)}
+ul{margin:0;padding-left:18px}
+.legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:.78rem;color:var(--muted)}
+.legend i{display:inline-block;width:10px;height:10px;margin-right:5px;vertical-align:middle}
+.rules{font-size:.85rem;color:var(--muted)}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:4px 14px;font-size:.85rem}
+.kv b{font-family:var(--mono);font-weight:500;color:var(--muted)}
+.form{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px 16px;align-items:end}
+.form label{display:grid;gap:3px;font-size:.8rem;color:var(--muted)}
+.form input,.form select,.form textarea{font:inherit;font-family:var(--mono);padding:8px;border:1px solid var(--line);background:var(--bg);color:var(--ink);width:100%}
+.form textarea{grid-column:1/-1;min-height:48px;font-family:inherit}
+.form input:focus-visible,.form select:focus-visible,.form textarea:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.small{font-size:.8rem;color:var(--muted)}
+button.x{font:inherit;background:none;border:0;color:var(--bad);cursor:pointer;padding:0 4px}
+@media (max-width:480px){.wrap{gap:16px}.panel{padding:14px}.verdict .big{font-size:1.05rem}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <div class="eyebrow">Washington surf forecast, scored and checked against the buoys</div>
+  <h1>Swell Watch</h1>
+  <div class="spots" id="spots"></div>
+  <p class="muted" id="spot-blurb"></p>
+  <div class="status" id="status">
+    <span id="st-swell">A offshore model</span>
+    <span id="st-local">B nearshore model</span>
+    <span id="st-nws">C NWS wave detail</span>
+    <span id="st-buoy">D buoys</span>
+    <span id="st-wind">Wind</span>
+    <span id="st-tide">Tides</span>
+    <span id="st-log">Log</span>
+  </div>
+</header>
+
+<section class="verdict" id="verdict">
+  <div class="eyebrow">Best window in the forecast</div>
+  <div class="big" id="v-big">Loading forecast…</div>
+  <div id="v-conf"></div>
+  <div id="v-detail" class="muted"></div>
+</section>
+
+<section class="panel" id="reality">
+  <h2>Right now, measured at sea</h2>
+  <p id="buoy-head">Reading the buoys…</p>
+  <details class="sm"><summary>The numbers behind that</summary>
+    <div class="kv" id="buoy-kv" style="margin-top:8px"></div>
+  </details>
+</section>
+
+<section>
+  <div class="eyebrow" style="margin-bottom:8px">Daily outlook (best daylight hour each day, combined score 0 to 10, separate estimates underneath)</div>
+  <div class="days" id="days"></div>
+</section>
+
+<section class="panel" id="logpanel">
+  <h2>Session log</h2>
+  <p class="small">Three questions after a session. The page saves them with everything it forecast for that hour, then uses the answers to turn swell height into a rideable face estimate and to tell you whether the score is running high or low. Log the same day if you can; the forecast for that hour is only on the page for about ten days.</p>
+  <div class="form" id="logform">
+    <label>Spot<select id="lg-spot"></select></label>
+    <label>When<input type="datetime-local" id="lg-time"></label>
+    <label>Face height ridden (ft)<input type="number" id="lg-face" step="0.5" min="0" inputmode="decimal" placeholder="e.g. 3"></label>
+    <label>How good, 1 to 5<select id="lg-q"><option value="">choose</option><option value="1">1 flat or unrideable</option><option value="2">2 poor</option><option value="3">3 fine</option><option value="4">4 good</option><option value="5">5 great</option></select></label>
+    <label>Wind as felt<select id="lg-wind"><option value="">choose</option><option>calm</option><option>offshore</option><option>cross</option><option>onshore</option></select></label>
+    <label>Who surfed<input type="text" id="lg-who" placeholder="me, or a name"></label>
+    <textarea id="lg-note" placeholder="Optional note: which peak, crowd, board, anything worth remembering"></textarea>
+  </div>
+  <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center"><button class="btn" id="lg-save">Save session</button><button class="btn sec" id="lg-csv">Download CSV</button><span class="small" id="lg-msg"></span></div>
+  <div id="lg-insight" class="small"></div>
+  <details class="sm"><summary>All logged sessions</summary>
+  <div class="tbl" style="margin-top:8px"><table id="lg-table"><thead><tr><th>When</th><th>Spot</th><th>Who</th><th class="n">Face ft</th><th class="n">Quality</th><th>Wind felt</th><th class="n">Score</th><th class="n">A</th><th class="n">B</th><th class="n">C</th><th>Offshore swell</th><th>Nearshore swell</th><th>Wind fc</th><th>Tide</th><th>Note</th><th></th></tr></thead><tbody></tbody></table></div>
+  </details>
+</section>
+
+<section class="panel" id="detail">
+  <h2 id="d-title">Hour by hour</h2>
+  <div class="legend"><span><i style="background:var(--good)"></i>Go (7+)</span><span><i style="background:var(--ok)"></i>Maybe (4 to 7)</span><span><i style="background:var(--bad)"></i>Skip (under 4)</span><span><i style="background:var(--strip);opacity:.35"></i>Dark</span></div>
+  <div class="strip" id="strip"></div>
+  <div class="hours" id="hours"></div>
+  <div id="tides" class="mono muted" style="font-size:.8rem"></div>
+  <details class="sm" id="hourdetails"><summary>Hour by hour numbers</summary>
+  <div style="display:flex;gap:10px;flex-wrap:wrap;margin:10px 0"><button class="btn sec" id="tog-detail">Show the four estimates</button><button class="btn sec" id="tog-night">Show night hours</button></div>
+  <div class="tbl"><table id="htab"><thead><tr>
+    <th>Hour</th><th class="n">Score</th><th>Face</th><th>Swell nearshore</th><th>Wind</th><th>Tide</th><th>Why</th>
+    <th class="det n">A</th><th class="det n">B</th><th class="det n">C</th><th class="det n">D</th><th class="det">A: offshore model, arriving</th><th class="det">B: nearshore model</th><th class="det">C: NWS wave detail, arriving</th>
+  </tr></thead><tbody></tbody></table></div>
+  <p class="muted det" style="font-size:.8rem">Heights in feet unless switched to metres at the top (the models report metres; the NWS text reports feet), periods in seconds, directions are where the swell comes from. Green tags mark components inside this spot's direction window. A and C are offshore swell shifted forward by travel time to the spot. B is already at the spot. D is the reference buoy shifted forward the same way, so it only exists for the next few hours.</p>
+  </details>
+</section>
+
+<section class="grid2">
+  <div class="panel">
+    <h2 id="nws-a-title">NWS wave detail</h2>
+    <p class="muted" style="font-size:.8rem">The forecaster's own swell components, verbatim. Estimate C is built from this. <span id="nws-time"></span></p>
+    <pre id="nwsA">Loading…</pre>
+  </div>
+  <div class="panel">
+    <h2 id="nws-b-title">NWS wind at the spot</h2>
+    <p class="muted" style="font-size:.8rem">Verbatim marine zone forecast for the water in front of the spot.</p>
+    <pre id="nwsB">Loading…</pre>
+  </div>
+</section>
+
+<section class="panel">
+  <h2>Links for this spot</h2>
+  <ul id="links"></ul>
+</section>
+
+<details class="panel">
+  <summary>How the score and confidence work, and what to tune for this spot</summary>
+  <p>Every daylight hour gets up to four independent estimates of the same thing, each 0 to 10: energy score × wind factor × tide factor. The combined score is their average. Confidence comes from how much they disagree, and from whether the reference buoy matches what the models say is there right now.</p>
+  <ul class="rules">
+    <li><strong>A, offshore model.</strong> NOAA GFS Wave at the spot's offshore reference point (the Strait entrance for the Strait spots, a cell a few miles off the beach for Westport). Up to three swell components, each direction-filtered and shifted forward by travel time to the spot.</li>
+    <li><strong>B, nearshore model.</strong> Météo-France MFWAM at a grid cell next to the spot. For the Strait spots this model has already simulated the loss on the way in, so heights are much smaller and get their own thresholds.</li>
+    <li><strong>C, NWS forecaster.</strong> The "Wave Detail" line for each period of the relevant NWS zone text, parsed into components and treated like A.</li>
+    <li><strong>D, buoy nowcast.</strong> The latest reading from the reference buoy, shifted forward by its travel time. Only exists for the next few hours, but it is measured, not modelled.</li>
+    <li><strong>Rideable face estimate.</strong> Derived. Until three logged sessions at a spot it is the nearshore model height × a placeholder factor (marked as a guess). After three sessions it becomes your own median ratio of logged face height to nearshore model height at that hour.</li>
+    <li><strong>Confidence.</strong> High when the estimates at the peak hour sit within 1.5 points of each other, medium within 3, low beyond. One step lower if the buoy's aligned energy right now differs from the models' by more than a factor of two.</li>
+    <li><strong>Energy index</strong> is derived: sum over swell components of (direction credit × height² × period), metres and seconds. Components shorter than the minimum period are ignored as chop.</li>
+    <li><strong>Arrival lag</strong> is derived from deep-water group speed (0.78 m/s per second of period) over the straight-line distance from the reference point to the spot.</li>
+    <li><strong>Wind.</strong> Under the calm threshold any direction scores full. Offshore is tolerated up to its limit, onshore least, cross wind in between.</li>
+    <li><strong>Tide.</strong> Each spot has a preferred part of the cycle; hours outside it are trimmed, not zeroed.</li>
+  </ul>
+  <div class="tune" id="tune"></div>
+  <div style="display:flex;gap:10px;flex-wrap:wrap"><button class="btn" id="apply">Recalculate</button><button class="btn sec" id="reset">Reset this spot to defaults</button></div>
+  <ul class="rules" id="rules"></ul>
+</details>
+</div>
+
+<script>
+(function(){
+// ===== CONFIG =====
+// Paste the Google Apps Script web app URL here once the sheet is set up. Empty = log stays in this browser only.
+const SHEET_URL='';
+const TZ='America/Los_Angeles';
+const PTS={
+  entrance:{lat:48.49,lon:-124.73,name:'the Strait entrance'},
+  westportOff:{lat:46.90,lon:-124.20,name:'a few miles off Westport'}
+};
+const BUOYS={
+  '46087':{ds:'gov-ndbc-46087',kind:'ndbc',name:'Buoy 46087, Strait entrance'},
+  '46088':{ds:'gov-ndbc-46088',kind:'ndbc',name:'Buoy 46088, past Port Angeles'},
+  '46211':{ds:'edu_ucsd_cdip_036',kind:'cdip',name:'Buoy 46211, Grays Harbor'}
+};
+const STRAIT_ENERGY={eMin:12,eGood:40,eGreat:90,lMin:0.8,lGood:3,lGreat:8,faceK:1.4};
+const COAST_ENERGY={eMin:12,eGood:40,eGreat:90,lMin:10,lGood:35,lGreat:80,faceK:1.3};
+const SPOTS={
+  crescent:{group:'Strait',name:'Crescent Beach',lat:48.162,lon:-123.733,localLat:48.17,localLon:-123.73,ref:'entrance',waveZone:'PZZ130',windZone:'PZZ131',buoyIn:'46087',buoyOut:'46088',tide:{id:'9444090',name:'Port Angeles'},tidePref:'midhigh',
+    blurb:'Beach break in Crescent Bay, Joyce. Sheltered and inconsistent; needs a powerful W to NW swell, optimum WNW. Offshore is S to SSE. Best mid to high tide, can go flat for about 45 minutes at dead high. Closes out at 6 ft and up unless strongly offshore.',
+    rules:['Direction window and wind from the <a href="https://www.surf-forecast.com/breaks/Crescent" target="_blank" rel="noopener">Surf-Forecast Crescent guide</a>; offshore arc widened to ESE per <a href="https://surfcaptain.com/forecast/crescent-beach-washington" target="_blank" rel="noopener">Surf Captain</a>.'],
+    defaults:Object.assign({winLo:270,winHi:300,fade:25,minPeriod:8,calmKn:5,offLo:130,offHi:200,offMaxKn:15,crossMaxKn:12,onMaxKn:8,lagOn:1},STRAIT_ENERGY),
+    links:[['https://www.surf-forecast.com/breaks/Crescent/forecasts/latest/six_day','Surf-Forecast Crescent']]},
+  twin:{group:'Strait',name:'Twin Rivers',lat:48.17,lon:-123.95,localLat:48.17,localLon:-123.95,ref:'entrance',waveZone:'PZZ130',windZone:'PZZ131',buoyIn:'46087',buoyOut:'46088',tide:{id:'9444090',name:'Port Angeles'},tidePref:'lowmid',
+    blurb:'Two point / river-mouth breaks about 18 km west of Crescent. Needs W to NW swell, optimum WNW. The left prefers S to SE offshore, the right S to SW. Both work low to mid tide. Inconsistent; January is the most reliable month.',
+    rules:['Direction, wind and tide from the <a href="https://www.surf-forecast.com/breaks/Twin_1" target="_blank" rel="noopener">Surf-Forecast Twin Rivers guide</a>.'],
+    defaults:Object.assign({winLo:270,winHi:305,fade:25,minPeriod:8,calmKn:5,offLo:135,offHi:225,offMaxKn:15,crossMaxKn:12,onMaxKn:8,lagOn:1},STRAIT_ENERGY),
+    links:[['https://www.surf-forecast.com/breaks/Twin_1/forecasts/latest/six_day','Surf-Forecast Twin Rivers']]},
+  ebey:{group:'Strait',name:'Fort Ebey',lat:48.22,lon:-122.77,localLat:48.22,localLon:-122.77,ref:'entrance',waveZone:'PZZ130',windZone:'PZZ134',buoyIn:'46088',buoyOut:null,tide:{id:'9444900',name:'Port Townsend'},tidePref:'any',
+    blurb:'Reef break on the west shore of Whidbey Island, at the far east end of the Strait. Very fickle; needs a WNW swell big enough to travel the whole Strait and bend into Admiralty Inlet. Offshore is from the east. December is the most reliable month. Swell takes four to five hours longer to get here than to Crescent, and the buoy past Port Angeles (46088) is the one to watch.',
+    rules:['Direction and wind from the <a href="https://www.surf-forecast.com/breaks/Fort-Ebey" target="_blank" rel="noopener">Surf-Forecast Fort Ebey guide</a>. Tide preference not stated there, so tide is not scored until you tell me otherwise.'],
+    defaults:Object.assign({winLo:270,winHi:305,fade:25,minPeriod:8,calmKn:5,offLo:60,offHi:120,offMaxKn:15,crossMaxKn:12,onMaxKn:8,lagOn:1},STRAIT_ENERGY,{lMin:0.4,lGood:1.5,lGreat:4}),
+    links:[['https://www.surf-forecast.com/breaks/Fort-Ebey/forecasts/latest/six_day','Surf-Forecast Fort Ebey']]},
+  wp_corner:{group:'Westport',name:'The Corner',lat:46.86,lon:-124.12,localLat:46.90,localLon:-124.13,ref:'westportOff',waveZone:'PZZ156',windZone:'PZZ156',buoyIn:'46211',buoyOut:null,tide:{id:'9441102',name:'Westport'},tidePref:'any',
+    blurb:'Exposed beach and jetty break at Westport, open Pacific coast. Consistent. Ideal swell WSW, offshore from the NE, good at all stages of the tide. Rips and pollution noted. Lefts and rights; busy when it is on.',
+    rules:['From the <a href="https://www.surf-forecast.com/breaks/Westport_The-Corner" target="_blank" rel="noopener">Surf-Forecast Westport The Corner guide</a>. Coordinates as published there (46.86 N, 124.12 W).'],
+    defaults:Object.assign({winLo:230,winHi:290,fade:30,minPeriod:8,calmKn:5,offLo:20,offHi:110,offMaxKn:18,crossMaxKn:12,onMaxKn:8,lagOn:1},COAST_ENERGY),
+    links:[['https://www.surf-forecast.com/breaks/Westport_The-Corner/forecasts/latest/six_day','Surf-Forecast The Corner']]},
+  wp_cove:{group:'Westport',name:'The Cove',lat:46.91,lon:-124.13,localLat:46.90,localLon:-124.13,ref:'westportOff',waveZone:'PZZ156',windZone:'PZZ156',buoyIn:'46211',buoyOut:null,tide:{id:'9441102',name:'Westport'},tidePref:'any',
+    blurb:'Fairly exposed beach and jetty break inside Half Moon Bay at Westport. Quite consistent, mix of groundswell and windswell. Ideal swell WSW, offshore from the S, good at all tides. Lefts and rights; can get crowded.',
+    rules:['From the <a href="https://www.surf-forecast.com/breaks/Westport_The-Cove" target="_blank" rel="noopener">Surf-Forecast Westport The Cove guide</a>.'],
+    defaults:Object.assign({winLo:230,winHi:290,fade:30,minPeriod:8,calmKn:5,offLo:135,offHi:225,offMaxKn:18,crossMaxKn:12,onMaxKn:8,lagOn:1},COAST_ENERGY),
+    links:[['https://www.surf-forecast.com/breaks/Westport_The-Cove/forecasts/latest/six_day','Surf-Forecast The Cove']]},
+  wp_groins:{group:'Westport',name:'The Groins',lat:46.91,lon:-124.11,localLat:46.90,localLon:-124.13,ref:'westportOff',waveZone:'PZZ156',windZone:'PZZ156',buoyIn:'46211',buoyOut:null,tide:{id:'9441102',name:'Westport'},tidePref:'low',
+    blurb:'Sheltered beach and jetty break at Westport. Reasonably consistent, mostly groundswell. Ideal swell WSW, offshore from the S, best around low tide. Mainly lefts; busy when it is on.',
+    rules:['From the <a href="https://www.surf-forecast.com/breaks/Westport_The-Groins" target="_blank" rel="noopener">Surf-Forecast Westport The Groins guide</a>.'],
+    defaults:Object.assign({winLo:230,winHi:290,fade:30,minPeriod:8,calmKn:5,offLo:135,offHi:225,offMaxKn:18,crossMaxKn:12,onMaxKn:8,lagOn:1},COAST_ENERGY),
+    links:[['https://www.surf-forecast.com/breaks/Westport_The-Groins/forecasts/latest/six_day','Surf-Forecast The Groins']]}
+};
+const FIELDS=[
+  ['winLo','Direction window start (° from)'],['winHi','Direction window end (° from)'],['fade','Fade width outside window (°)'],
+  ['minPeriod','Minimum swell period counted (s)'],
+  ['eMin','Offshore energy (A, C, D): minimum surfable'],['eGood','Offshore energy: good'],['eGreat','Offshore energy: great'],
+  ['lMin','Nearshore energy (B): minimum surfable'],['lGood','Nearshore energy: good'],['lGreat','Nearshore energy: great'],
+  ['faceK','Face placeholder factor (until 3 sessions)'],
+  ['calmKn','Calm wind, any direction (kn)'],['offLo','Offshore arc start (° from)'],['offHi','Offshore arc end (° from)'],
+  ['offMaxKn','Offshore wind fine up to (kn)'],['crossMaxKn','Cross wind tolerated up to (kn)'],['onMaxKn','Onshore wind tolerated up to (kn)'],
+  ['lagOn','Apply arrival lag (1 yes, 0 no)']
+];
+let spotKey='crescent';
+try{const s=localStorage.getItem('ssw-spot');if(s&&SPOTS[s])spotKey=s;}catch(e){}
+let P={};
+function loadParams(){const S=SPOTS[spotKey];P=Object.assign({},S.defaults);try{const s=localStorage.getItem('ssw-params-'+spotKey);if(s)P=Object.assign({},S.defaults,JSON.parse(s));}catch(e){}}
+loadParams();
+const $=id=>document.getElementById(id);
+let FT=true;try{FT=localStorage.getItem('ssw-units')!=='m';}catch(e){}
+function fmtH(m,d){return FT?(m/0.3048).toFixed(d==null?1:d)+' ft':m.toFixed(d==null?1:d)+' m';}
+
+const tuneEl=$('tune');
+FIELDS.forEach(([k,label])=>{const l=document.createElement('label');l.innerHTML=`<span>${label}</span><input type="number" step="any" id="p-${k}">`;tuneEl.appendChild(l);});
+function fillTune(){FIELDS.forEach(([k])=>{$('p-'+k).value=P[k];});}
+$('apply').addEventListener('click',()=>{FIELDS.forEach(([k])=>{const v=parseFloat($('p-'+k).value);if(!isNaN(v))P[k]=v;});try{localStorage.setItem('ssw-params-'+spotKey,JSON.stringify(P));}catch(e){}compute();});
+$('reset').addEventListener('click',()=>{try{localStorage.removeItem('ssw-params-'+spotKey);}catch(e){}loadParams();fillTune();compute();});
+
+function renderSpotButtons(){
+  const el=$('spots');el.innerHTML='';let lastGroup=null;
+  Object.keys(SPOTS).forEach(k=>{const S=SPOTS[k];
+    if(S.group!==lastGroup){if(lastGroup)el.appendChild(Object.assign(document.createElement('span'),{className:'sep'}));const g=document.createElement('span');g.className='grp';g.textContent=S.group;el.appendChild(g);lastGroup=S.group;}
+    const b=document.createElement('button');b.type='button';b.className='spot'+(k===spotKey?' sel':'');b.textContent=S.name;b.addEventListener('click',()=>selectSpot(k));el.appendChild(b);});
+  el.appendChild(Object.assign(document.createElement('span'),{className:'sep'}));
+  const u=document.createElement('button');u.type='button';u.className='spot';u.id='units';u.textContent=FT?'Show metres':'Show feet';u.addEventListener('click',()=>{FT=!FT;try{localStorage.setItem('ssw-units',FT?'ft':'m');}catch(e){}u.textContent=FT?'Show metres':'Show feet';compute();});el.appendChild(u);
+  const S=SPOTS[spotKey];
+  $('spot-blurb').textContent=S.blurb;
+  $('rules').innerHTML=S.rules.map(r=>'<li>'+r+'</li>').join('');
+  $('nws-a-title').textContent=`NWS wave detail (${S.waveZone})`;
+  $('nws-b-title').textContent=`NWS wind and waves at the spot (${S.windZone})`;
+  const L=[];
+  L.push([`https://www.ndbc.noaa.gov/station_page.php?station=${S.buoyIn}`,BUOYS[S.buoyIn].name+' (official NDBC page)']);
+  if(S.buoyOut)L.push([`https://www.ndbc.noaa.gov/station_page.php?station=${S.buoyOut}`,BUOYS[S.buoyOut].name]);
+  L.push([`https://tidesandcurrents.noaa.gov/noaatidepredictions.html?id=${S.tide.id}`,`${S.tide.name} tide predictions (${S.tide.id})`]);
+  L.push([`https://marine.weather.gov/MapClick.php?zoneid=${S.waveZone.toLowerCase()}`,`NWS ${S.waveZone}`]);
+  if(S.windZone!==S.waveZone)L.push([`https://marine.weather.gov/MapClick.php?zoneid=${S.windZone.toLowerCase()}`,`NWS ${S.windZone}`]);
+  S.links.forEach(l=>L.push(l));
+  $('links').innerHTML=L.map(([u,t])=>`<li><a href="${u}" target="_blank" rel="noopener">${t}</a></li>`).join('');
+}
+async function selectSpot(k){
+  spotKey=k;try{localStorage.setItem('ssw-spot',k);}catch(e){}
+  loadParams();fillTune();renderSpotButtons();
+  $('v-big').textContent='Loading '+SPOTS[k].name+'…';
+  await loadSpotData();compute();
+}
+
+// ---- geometry (derived) ----
+function distKm(a,b){const R=6371,d2r=Math.PI/180;const dLat=(b.lat-a.lat)*d2r,dLon=(b.lon-a.lon)*d2r;const h=Math.sin(dLat/2)**2+Math.cos(a.lat*d2r)*Math.cos(b.lat*d2r)*Math.sin(dLon/2)**2;return 2*R*Math.asin(Math.sqrt(h));}
+function lagHours(T,distKm){if(!T||T<=0)return 0;const cg=9.81*T/(4*Math.PI);return (distKm*1000/cg)/3600;}
+
+// ---- scoring ----
+function angDiff(a,b){let d=Math.abs(((a-b)%360+360)%360);return d>180?360-d:d;}
+function inArc(dir,lo,hi){lo=((lo%360)+360)%360;hi=((hi%360)+360)%360;dir=((dir%360)+360)%360;return lo<=hi?(dir>=lo&&dir<=hi):(dir>=lo||dir<=hi);}
+function dirCredit(dir){if(dir==null)return 0;if(inArc(dir,P.winLo,P.winHi))return 1;const d=Math.min(angDiff(dir,P.winLo),angDiff(dir,P.winHi));return Math.max(0,1-d/P.fade);}
+function energyScore(E,mn,gd,gt){if(E<mn)return 2.5*(E/mn);if(E<gd)return 2.5+4*(E-mn)/(gd-mn);if(E<gt)return 6.5+3*(E-gd)/(gt-gd);return 10;}
+function windFactor(spd,dir){
+  if(spd==null)return {f:1,kind:'unknown'};
+  if(spd<=P.calmKn)return {f:1,kind:'calm'};
+  let limit,kind;
+  if(inArc(dir,P.offLo,P.offHi)){limit=P.offMaxKn;kind='offshore';}
+  else if(inArc(dir,P.offLo+180,P.offHi+180)){limit=P.onMaxKn;kind='onshore';}
+  else{limit=P.crossMaxKn;kind='cross';}
+  return {f:Math.max(0,1-Math.max(0,spd-limit)/limit),kind};
+}
+const CN=['N','NNE','NE','ENE','E','ESE','SE','SSE','S','SSW','SW','WSW','W','WNW','NW','NNW'];
+function compass(d){if(d==null)return '—';return CN[Math.round(((d%360)+360)%360/22.5)%16];}
+function degOf(c){const i=CN.indexOf(c.toUpperCase());return i<0?null:i*22.5;}
+function energyOf(parts){let E=0;const out=[];parts.forEach(c=>{const cr=(c.T!=null&&c.T>=P.minPeriod)?dirCredit(c.D):0;const e=cr*c.H*c.H*c.T;E+=e;out.push(Object.assign({cr,e},c));});out.sort((a,b)=>b.e-a.e||b.H-a.H);return {E,parts:out};}
+
+// ---- data ----
+const data={swell:null,local:null,wind:null,tides:null,nws:null,nwsPeriods:null,buoy:{},buoyErr:null};
+function setSt(id,cls,text){const e=$(id);e.className=cls;if(text)e.textContent=text;}
+async function getJSON(url){const r=await fetch(url);if(!r.ok)throw new Error(r.status);return r.json();}
+const SW_VARS='swell_wave_height,swell_wave_direction,swell_wave_period,secondary_swell_wave_height,secondary_swell_wave_direction,secondary_swell_wave_period,tertiary_swell_wave_height,tertiary_swell_wave_direction,tertiary_swell_wave_period';
+const K3=[['swell_wave_height','swell_wave_direction','swell_wave_period'],['secondary_swell_wave_height','secondary_swell_wave_direction','secondary_swell_wave_period'],['tertiary_swell_wave_height','tertiary_swell_wave_direction','tertiary_swell_wave_period']];
+function componentsAt(h,i,keys){const out=[];keys.forEach(([hK,dK,pK])=>{if(!h[hK])return;const H=h[hK][i],D=h[dK][i],T=h[pK][i];if(H==null||H<=0||T==null)return;out.push({H,D,T});});return out;}
+const cache={};
+async function loadOffshore(){
+  const R=PTS[SPOTS[spotKey].ref];const key='off:'+R.lat+','+R.lon;if(cache[key])return cache[key];
+  const base=`https://marine-api.open-meteo.com/v1/marine?latitude=${R.lat}&longitude=${R.lon}&hourly=${SW_VARS}&timezone=${encodeURIComponent(TZ)}&cell_selection=sea&forecast_days=10`;
+  const tries=[[base+'&models=ncep_gfswave016','GFS Wave 0.16°'],[base+'&models=ncep_gfswave025','GFS Wave 0.25°']];
+  let last;
+  for(const [u,name] of tries){try{const j=await getJSON(u);if(j.hourly&&j.hourly.swell_wave_height.some(v=>v!=null)){j._model=name;cache[key]=j;return j;}last=new Error('empty');}catch(e){last=e;}}
+  throw last;
+}
+async function loadLocal(){
+  const S=SPOTS[spotKey];const key='loc:'+S.localLat+','+S.localLon;if(cache[key])return cache[key];
+  const j=await getJSON(`https://marine-api.open-meteo.com/v1/marine?latitude=${S.localLat}&longitude=${S.localLon}&hourly=swell_wave_height,swell_wave_direction,swell_wave_period,secondary_swell_wave_height,secondary_swell_wave_direction,secondary_swell_wave_period&timezone=${encodeURIComponent(TZ)}&cell_selection=sea&forecast_days=10&models=best_match`);
+  if(!j.hourly||!j.hourly.swell_wave_height.some(v=>v!=null))throw new Error('empty');
+  cache[key]=j;return j;
+}
+async function loadWind(){
+  const S=SPOTS[spotKey];const key='wind:'+S.lat+','+S.lon;if(cache[key])return cache[key];
+  const j=await getJSON(`https://api.open-meteo.com/v1/forecast?latitude=${S.lat}&longitude=${S.lon}&hourly=wind_speed_10m,wind_direction_10m,wind_gusts_10m&daily=sunrise,sunset&wind_speed_unit=kn&timezone=${encodeURIComponent(TZ)}&forecast_days=10`);
+  cache[key]=j;return j;
+}
+async function loadTides(){
+  const S=SPOTS[spotKey];const key='tide:'+S.tide.id;if(cache[key])return cache[key];
+  const d=new Date();const pad=n=>String(n).padStart(2,'0');
+  const bd=`${d.getFullYear()}${pad(d.getMonth()+1)}${pad(d.getDate())}`;
+  const j=await getJSON(`https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?product=predictions&application=swell_watch&begin_date=${bd}&range=264&datum=MLLW&station=${S.tide.id}&time_zone=lst_ldt&units=english&interval=hilo&format=json`);
+  if(!j.predictions)throw new Error('no predictions');
+  const t=j.predictions.map(p=>({t:p.t.replace(' ','T'),v:parseFloat(p.v),type:p.type}));cache[key]=t;return t;
+}
+async function loadNWS(){
+  if(cache.nws)return cache.nws;
+  const list=await getJSON('https://api.weather.gov/products/types/CWF/locations/SEW');
+  const items=list['@graph']||[];if(!items.length)throw new Error('no CWF');
+  const prod=await getJSON(items[0]['@id']);
+  cache.nws={text:prod.productText||'',time:prod.issuanceTime||''};return cache.nws;
+}
+function zoneSection(text,zone){const m=text.match(new RegExp(zone+'-[\\s\\S]*?(?=\\n\\$\\$)','i'));return m?m[0].trim():null;}
+function parseNWSPeriods(section){
+  if(!section)return null;
+  const hdr=section.match(/(\d{3,4}) (AM|PM) [A-Z]{3} (\w{3}) (\w{3}) (\d{1,2}) (\d{4})/);
+  if(!hdr)return null;
+  const months={Jan:0,Feb:1,Mar:2,Apr:3,May:4,Jun:5,Jul:6,Aug:7,Sep:8,Oct:9,Nov:10,Dec:11};
+  const issueDay=new Date(+hdr[6],months[hdr[4]],+hdr[5]);
+  const body=section.replace(/\n(?!\.)/g,' ').replace(/\n\./g,'\n.');
+  const lines=body.split('\n').filter(l=>l.startsWith('.'));
+  const out=[];let day=new Date(issueDay);let lastNight=null;
+  lines.forEach(l=>{
+    const m=l.match(/^\.([A-Z ]+?)\.\.\.(.*)$/);if(!m)return;
+    const label=m[1].trim(),txt=m[2];
+    const isNight=/NIGHT|OVERNIGHT|TONIGHT/.test(label);
+    if(lastNight===true&&!isNight)day=new Date(day.getTime()+86400000);
+    lastNight=isNight;
+    const pad=n=>String(n).padStart(2,'0');const ds=`${day.getFullYear()}-${pad(day.getMonth()+1)}-${pad(day.getDate())}`;
+    const nd=new Date(day.getTime()+86400000);const nds=`${nd.getFullYear()}-${pad(nd.getMonth()+1)}-${pad(nd.getDate())}`;
+    const start=isNight?ds+'T18:00':ds+'T06:00';const end=isNight?nds+'T06:00':ds+'T18:00';
+    const comps=[];const wd=txt.match(/Wave Detail:\s*([^.]*)/i);
+    if(wd){const re=/([NSEW]{1,3})\s+(\d+(?:\.\d+)?)\s*ft\s+at\s+(\d+)\s+seconds?/gi;let c;while((c=re.exec(wd[1]))){const D=degOf(c[1]);if(D!=null)comps.push({H:+c[2]*0.3048,D,T:+c[3]});}}
+    out.push({label,start,end,comps,txt});
+  });
+  return out;
+}
+async function loadBuoy(id){
+  const B=BUOYS[id];const key='buoy:'+id;if(cache[key])return cache[key];
+  const cols=B.kind==='ndbc'
+    ?'time,sea_surface_wave_significant_height,sea_surface_wave_period_at_variance_spectral_density_maximum,sea_surface_wave_from_direction,sea_surface_swell_wave_significant_height,sea_surface_swell_wave_period,sea_surface_swell_wave_from_direction,sea_surface_wind_wave_significant_height,sea_surface_wind_wave_period,sea_surface_wind_wave_from_direction,wind_speed,wind_from_direction'
+    :'time,sea_surface_wave_significant_height,sea_surface_wave_period_at_variance_spectral_density_maximum,sea_surface_wave_from_direction';
+  const j=await getJSON(`https://erddap.sensors.ioos.us/erddap/tabledap/${B.ds}.json?${encodeURIComponent(cols)}&time%3E=now-12hours&orderBy(%22time%22)`);
+  const rev=[...j.table.rows].reverse();
+  let out;
+  if(B.kind==='ndbc'){
+    const last=rev.find(r=>r[4]!=null&&r[5]!=null&&r[6]!=null)||rev.find(r=>r[1]!=null&&r[2]!=null&&r[3]!=null)||rev.find(r=>r[1]!=null);
+    if(!last)throw new Error('no wave rows in the last 12 hours');
+    const [t,wvht,dpd,mwd,swH,swT,swD,wwH,wwT,wwD]=last;
+    const parts=[];if(swH!=null&&swT!=null&&swD!=null)parts.push({H:swH,T:swT,D:swD});if(wwH!=null&&wwT!=null&&wwD!=null)parts.push({H:wwH,T:wwT,D:wwD});
+    if(!parts.length&&wvht!=null&&dpd!=null&&mwd!=null)parts.push({H:wvht,T:dpd,D:mwd});
+    const wrow=rev.find(r=>r[10]!=null)||[];
+    out={t,wvht,parts,ws:wrow[10]==null?null:wrow[10]*1.94384,wdir:wrow[11]};
+  }else{
+    const last=rev.find(r=>r[1]!=null&&r[2]!=null&&r[3]!=null)||rev.find(r=>r[1]!=null);
+    if(!last)throw new Error('no wave rows in the last 12 hours');
+    const [t,wvht,dpd,mwd]=last;const parts=[];if(wvht!=null&&dpd!=null&&mwd!=null)parts.push({H:wvht,T:dpd,D:mwd});
+    out={t,wvht,parts,ws:null,wdir:null};
+  }
+  cache[key]=out;return out;
+}
+async function loadSpotData(){
+  const S=SPOTS[spotKey];data.buoy={};data.buoyErr=null;
+  await Promise.all([
+    loadOffshore().then(j=>{data.swell=j;setSt('st-swell','on',`A: ${j._model} at ${PTS[S.ref].name}`);}).catch(e=>{data.swell=null;setSt('st-swell','err','A failed ('+e.message+')');}),
+    loadLocal().then(j=>{data.local=j;setSt('st-local','on',`B: MFWAM cell ${j.latitude.toFixed(2)}, ${j.longitude.toFixed(2)}`);}).catch(e=>{data.local=null;setSt('st-local','err','B failed ('+e.message+')');}),
+    loadWind().then(j=>{data.wind=j;setSt('st-wind','on',`Wind at ${j.latitude.toFixed(2)}, ${j.longitude.toFixed(2)}`);}).catch(e=>{data.wind=null;setSt('st-wind','err','Wind failed ('+e.message+')');}),
+    loadTides().then(t=>{data.tides=t;setSt('st-tide','on','Tides: NOAA '+S.tide.id+' '+S.tide.name);}).catch(e=>{data.tides=null;setSt('st-tide','err','Tides failed ('+e.message+')');}),
+    loadNWS().then(n=>{data.nws=n;const sA=zoneSection(n.text,S.waveZone);const sB=zoneSection(n.text,S.windZone);$('nwsA').textContent=sA||'(zone not found)';$('nwsB').textContent=sB||'(zone not found)';$('nws-time').textContent=n.time?'Issued '+new Date(n.time).toLocaleString('en-US',{timeZone:TZ}):'';data.nwsPeriods=parseNWSPeriods(sA);const np=data.nwsPeriods?data.nwsPeriods.filter(p=>p.comps.length).length:0;setSt('st-nws',np?'on':'err',np?`C: NWS ${S.waveZone} wave detail, ${np} periods`:'C: NWS text loaded but no wave detail parsed');}).catch(e=>{data.nwsPeriods=null;setSt('st-nws','err','C failed ('+e.message+')');$('nwsA').textContent='Could not load.';$('nwsB').textContent='Could not load.';}),
+    Promise.all([loadBuoy(S.buoyIn).then(b=>{data.buoy[S.buoyIn]=b;}).catch(e=>{data.buoyErr=e.message;}),S.buoyOut?loadBuoy(S.buoyOut).then(b=>{data.buoy[S.buoyOut]=b;}).catch(()=>{}):Promise.resolve()]).then(()=>{setSt('st-buoy',data.buoy[S.buoyIn]?'on':'err',data.buoy[S.buoyIn]?'D: '+BUOYS[S.buoyIn].name+(S.buoyOut&&data.buoy[S.buoyOut]?' and '+S.buoyOut:''):'D: buoy unavailable');})
+  ]);
+}
+
+// ---- session log (browser cache + optional Google Sheet) ----
+let LOG=[];
+function loadLocalLog(){try{return JSON.parse(localStorage.getItem('ssw-log')||'[]');}catch(e){return [];}}
+function saveLocalLog(l){try{localStorage.setItem('ssw-log',JSON.stringify(l));}catch(e){}}
+async function syncLogFromSheet(){
+  if(!SHEET_URL){setSt('st-log','on','Log: this browser only');return;}
+  try{const r=await fetch(SHEET_URL+'?action=list');const j=await r.json();
+    if(!Array.isArray(j.rows))throw new Error('bad response');
+    const byId={};LOG.forEach(x=>byId[x.id]=x);j.rows.forEach(x=>byId[x.id]=x);
+    LOG=Object.values(byId);saveLocalLog(LOG);setSt('st-log','on',`Log: Google Sheet, ${LOG.length} sessions`);
+  }catch(e){setSt('st-log','err','Log: sheet unreachable ('+e.message+'), using this browser\'s copy');}
+}
+async function pushToSheet(entry){
+  if(!SHEET_URL)return true;
+  try{const r=await fetch(SHEET_URL,{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify({action:'add',entry})});const j=await r.json();return !!j.ok;}catch(e){return false;}
+}
+async function deleteFromSheet(id){
+  if(!SHEET_URL)return true;
+  try{const r=await fetch(SHEET_URL,{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify({action:'delete',id})});const j=await r.json();return !!j.ok;}catch(e){return false;}
+}
+function faceRatio(){
+  const rows=LOG.filter(r=>r.spot===spotKey&&r.face>0&&r.snap&&r.snap.Hb>0.1);
+  if(rows.length<3)return {ratio:P.faceK,calibrated:false,n:rows.length};
+  const rs=rows.map(r=>(r.face*0.3048)/r.snap.Hb).sort((a,b)=>a-b);
+  return {ratio:rs[Math.floor(rs.length/2)],calibrated:true,n:rows.length};
+}
+function faceEstimate(h){const fr=faceRatio();const Hb=h.B&&h.B.parts.length?Math.max(...h.B.parts.map(p=>p.H)):null;if(Hb==null)return null;return {m:Hb*fr.ratio,calibrated:fr.calibrated,n:fr.n};}
+function faceText(h){const f=faceEstimate(h);if(!f)return '';return `≈ ${fmtH(f.m,0)} face${f.calibrated?'':'<span class="guess">guess</span>'}`;}
+
+// ---- compute ----
+let hours=[];let selDay=null;let realityCheck=null;let showNight=false;
+function tideFactor(t){
+  const pref=SPOTS[spotKey].tidePref;
+  if(pref==='any'||!data.tides||!data.tides.length)return {f:1,label:pref==='any'?'any':'—'};
+  const ts=new Date(t).getTime();let prev=null,next=null;
+  for(const p of data.tides){const pt=new Date(p.t).getTime();if(pt<=ts)prev=p;else{next=p;break;}}
+  if(!prev||!next)return {f:1,label:'—'};
+  const span=new Date(next.t)-new Date(prev.t);const frac=(ts-new Date(prev.t))/span;
+  const minToNext=(new Date(next.t)-ts)/60000,minFromPrev=(ts-new Date(prev.t))/60000;
+  const rising=next.type==='H';
+  const nearHigh=(rising&&minToNext<=25)||(!rising&&minFromPrev<=25);
+  const nearLow=(!rising&&minToNext<=25)||(rising&&minFromPrev<=25);
+  let stage=rising?(frac<.5?'rising, low':'rising, mid to high'):(frac<.5?'falling, high to mid':'falling, low');
+  if(nearHigh)stage='dead high';if(nearLow)stage='dead low';
+  let f;
+  if(pref==='midhigh'){f=nearHigh?.7:nearLow?.6:rising?(frac<.45?.75:1):(frac<.5?.9:.7);}
+  else if(pref==='lowmid'){f=nearHigh?.6:nearLow?.85:rising?(frac<.6?1:.75):(frac<.4?.75:1);}
+  else{ /* low */ f=nearLow?1:nearHigh?.6:rising?(frac<.35?1:frac<.7?.85:.7):(frac<.3?.7:frac<.65?.85:1);}
+  return {f,label:stage};
+}
+function nowLocalISO(){const s=new Date().toLocaleString('sv-SE',{timeZone:TZ});return s.slice(0,10)+'T'+s.slice(11,13)+':00';}
+function compute(){
+  if(!data.swell||!data.wind)return;
+  const S=SPOTS[spotKey];const R=PTS[S.ref];const dist=distKm(R,{lat:S.lat,lon:S.lon});
+  const sh=data.swell.hourly,wh=data.wind.hourly,lh=data.local?data.local.hourly:null;
+  const windIdx=new Map();wh.time.forEach((t,i)=>windIdx.set(t,i));
+  const localIdx=new Map();if(lh)lh.time.forEach((t,i)=>localIdx.set(t,i));
+  const sun={};(data.wind.daily.time||[]).forEach((d,i)=>{sun[d]={rise:data.wind.daily.sunrise[i],set:data.wind.daily.sunset[i]};});
+  const N=sh.time.length;
+  const arrA=sh.time.map(()=>[]),arrC=sh.time.map(()=>[]),arrD=sh.time.map(()=>[]);
+  const shift=(i,T)=>i+Math.round(P.lagOn?lagHours(T,dist):0);
+  sh.time.forEach((t,i)=>{componentsAt(sh,i,K3).forEach(c=>{const j=shift(i,c.T);if(j<N)arrA[j].push(Object.assign({lag:lagHours(c.T,dist)},c));});});
+  if(data.nwsPeriods){sh.time.forEach((t,i)=>{const p=data.nwsPeriods.find(p=>t>=p.start&&t<p.end);if(!p)return;p.comps.forEach(c=>{const j=shift(i,c.T);if(j<N)arrC[j].push(Object.assign({lag:lagHours(c.T,dist),label:p.label},c));});});}
+  const nowT=nowLocalISO();const nowI=sh.time.indexOf(nowT);
+  const bIn=data.buoy[S.buoyIn];
+  if(bIn&&nowI>=0){bIn.parts.forEach(c=>{const lag=P.lagOn?lagHours(c.T,dist):0;const j=nowI+Math.round(lag);for(let k=j;k<Math.min(N,j+3);k++)arrD[k].push(Object.assign({lag},c));});}
+  hours=sh.time.map((t,i)=>{
+    const wi=windIdx.get(t);const spd=wi!=null?wh.wind_speed_10m[wi]:null,wdir=wi!=null?wh.wind_direction_10m[wi]:null,gust=wi!=null?wh.wind_gusts_10m[wi]:null;
+    const wf=windFactor(spd,wdir);const tf=tideFactor(t);const mod=wf.f*tf.f;
+    const A=energyOf(arrA[i]);const sA=energyScore(A.E,P.eMin,P.eGood,P.eGreat)*mod;
+    let B=null,sB=null;const li=localIdx.get(t);if(lh&&li!=null){B=energyOf(componentsAt(lh,li,K3.slice(0,2)));sB=energyScore(B.E,P.lMin,P.lGood,P.lGreat)*mod;}
+    let C=null,sC=null;if(data.nwsPeriods&&arrC[i].length){C=energyOf(arrC[i]);sC=energyScore(C.E,P.eMin,P.eGood,P.eGreat)*mod;}
+    else if(data.nwsPeriods&&data.nwsPeriods.some(p=>t>=p.start&&t<p.end)){C={E:0,parts:[]};sC=0;}
+    let D=null,sD=null;if(arrD[i].length){D=energyOf(arrD[i]);sD=energyScore(D.E,P.eMin,P.eGood,P.eGreat)*mod;}
+    const ests=[sA,sB,sC,sD].filter(v=>v!=null);
+    const score=Math.round(ests.reduce((a,b)=>a+b,0)/ests.length*10)/10;
+    const day=t.slice(0,10);const s=sun[day];
+    const daylight=s?(t>=s.rise.slice(0,13)+':00'&&t<=s.set.slice(0,13)+':59'):true;
+    const r1=v=>v==null?null:Math.round(v*10)/10;
+    return {t,day,daylight,A,B,C,D,sA:r1(sA),sB:r1(sB),sC:r1(sC),sD:r1(sD),score,spd,wdir,gust,wkind:wf.kind,tf};
+  });
+  realityCheck=null;
+  if(bIn&&nowI>=0){
+    const modelNow=energyOf(componentsAt(sh,nowI,K3));const buoyNow=energyOf(bIn.parts);
+    let nwsNow=null;if(data.nwsPeriods){const p=data.nwsPeriods.find(p=>nowT>=p.start&&nowT<p.end);if(p)nwsNow=energyOf(p.comps);}
+    realityCheck={buoy:bIn,buoyE:buoyNow.E,modelE:modelNow.E,nwsE:nwsNow?nwsNow.E:null,bOut:S.buoyOut?data.buoy[S.buoyOut]||null:null};
+  }
+  renderDays();
+  if(!selDay||!hours.some(h=>h.day===selDay))selDay=hours[0].day;
+  renderDetail();renderVerdict();renderReality();renderLog();
+}
+function col(s){return s>=7?'var(--good)':s>=4?'var(--ok)':'var(--bad)';}
+function whyText(h){
+  const r=[];
+  const ests=[h.sA,h.sB,h.sC].filter(v=>v!=null);const spread=ests.length>1?Math.max(...ests)-Math.min(...ests):0;
+  const eA=energyScore(h.A.E,P.eMin,P.eGood,P.eGreat);const eB=h.B?energyScore(h.B.E,P.lMin,P.lGood,P.lGreat):null;
+  const en=eB==null?eA:(eA+eB)/2;
+  if(en<2.5)r.push('not enough aligned swell');else if(en<6.5)r.push('modest swell');else r.push('solid swell');
+  if(h.wkind==='onshore')r.push('onshore wind');else if(h.wkind==='cross'&&h.spd>P.crossMaxKn)r.push('too much cross wind');else if(h.wkind==='offshore'&&h.spd>P.offMaxKn)r.push('strong offshore');
+  if(h.tf.f<0.75)r.push('wrong tide ('+h.tf.label+')');
+  if(spread>3)r.push('sources disagree');
+  if(h.gust!=null&&h.gust>=20)r.push('gusty');
+  return r.join(', ');
+}
+function fmtDay(d){return new Date(d+'T12:00').toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});}
+function fmtHr(t){return new Date(t).toLocaleTimeString('en-US',{hour:'numeric'});}
+function comp(p){return p?`${fmtH(p.H)} ${p.T.toFixed(0)}s ${compass(p.D)} ${Math.round(p.D)}° <span class="tag${p.cr>=.99?' in':''}">${Math.round(p.cr*100)}%</span>`:'—';}
+function fmtS(v){return v==null?'—':v.toFixed(1);}
+function renderDays(){
+  const byDay={};hours.forEach(h=>{(byDay[h.day]=byDay[h.day]||[]).push(h);});
+  const el=$('days');el.innerHTML='';
+  Object.keys(byDay).forEach(d=>{
+    const dl=byDay[d].filter(h=>h.daylight);const best=(dl.length?dl:byDay[d]).reduce((a,b)=>b.score>a.score?b:a);
+    const b=document.createElement('button');b.className='day'+(d===selDay?' sel':'');b.type='button';
+    const top=best.A.parts[0];
+    b.innerHTML=`<div class="dn">${fmtDay(d)}</div><div class="sc" style="color:${col(best.score)}">${best.score.toFixed(1)}</div><div class="face">${faceText(best)}</div><div class="ab">A ${fmtS(best.sA)} B ${fmtS(best.sB)} C ${fmtS(best.sC)}${best.sD!=null?' D '+fmtS(best.sD):''}</div><div class="sub">best ${fmtHr(best.t)}<br>offshore ${top?`${fmtH(top.H)} @ ${top.T.toFixed(0)} s ${compass(top.D)}`:'none aligned'}<br>wind ${best.spd!=null?Math.round(best.spd)+' kn '+compass(best.wdir):'—'}</div>`;
+    b.addEventListener('click',()=>{selDay=d;renderDays();renderDetail();});
+    el.appendChild(b);
+  });
+}
+function renderDetail(){
+  const all=hours.filter(h=>h.day===selDay);const dh=all.filter(h=>showNight||h.daylight);
+  $('d-title').textContent=`Hour by hour, ${SPOTS[spotKey].name}, ${fmtDay(selDay)}`;
+  const strip=$('strip'),hrs=$('hours');strip.innerHTML='';hrs.innerHTML='';
+  all.forEach(h=>{const d=document.createElement('div');d.style.height=Math.max(3,h.score*6.4)+'px';if(h.daylight)d.style.background=col(h.score);else d.className='night';d.title=`${h.t.slice(11,16)} score ${h.score}`;strip.appendChild(d);const s=document.createElement('span');const hr=new Date(h.t).getHours();s.textContent=hr%3===0?hr:'';hrs.appendChild(s);});
+  const tb=$('htab').querySelector('tbody');tb.innerHTML='';
+  dh.forEach(h=>{
+    const tr=document.createElement('tr');if(!h.daylight)tr.className='night';
+    const two=x=>x&&x.parts.length?x.parts.slice(0,2).map(comp).join('<br>'):'—';
+    const tb0=h.B&&h.B.parts[0];const spotSwell=tb0?`${fmtH(tb0.H)} @ ${tb0.T.toFixed(0)} s ${compass(tb0.D)}`:'none';
+    tr.innerHTML=`<td>${fmtHr(h.t)}</td><td class="n" style="color:${h.daylight?col(h.score):'inherit'}"><strong>${h.score.toFixed(1)}</strong></td><td>${faceText(h)||'—'}</td><td>${spotSwell}</td><td>${h.spd!=null?Math.round(h.spd)+' kn '+compass(h.wdir):'—'}</td><td>${h.tf.label}</td><td class="why">${whyText(h)}</td>`+
+      `<td class="det n">${fmtS(h.sA)}</td><td class="det n">${fmtS(h.sB)}</td><td class="det n">${fmtS(h.sC)}</td><td class="det n">${fmtS(h.sD)}</td><td class="det">${two(h.A)}</td><td class="det">${two(h.B)}</td><td class="det">${two(h.C)}</td>`;
+    tb.appendChild(tr);
+  });
+  const tt=$('tides');const S=SPOTS[spotKey];
+  if(data.tides){const dt=data.tides.filter(p=>p.t.startsWith(selDay));tt.textContent=S.tide.name+' tides: '+(dt.length?dt.map(p=>`${p.type==='H'?'High':'Low'} ${p.t.slice(11,16)} (${p.v.toFixed(1)} ft)`).join(' · '):'none listed');}
+  else tt.textContent='Tides unavailable.';
+}
+function confidenceFor(h){
+  const ests=[h.sA,h.sB,h.sC].filter(v=>v!=null);
+  let level=ests.length<2?1:(Math.max(...ests)-Math.min(...ests)<=1.5?2:(Math.max(...ests)-Math.min(...ests)<=3?1:0));
+  const reasons=[];
+  if(ests.length<2)reasons.push('only one estimate available');
+  else reasons.push(`${ests.length} estimates within ${(Math.max(...ests)-Math.min(...ests)).toFixed(1)} points of each other`);
+  if(realityCheck){const {buoyE,modelE}=realityCheck;const big=Math.max(buoyE,modelE);
+    if(big>=P.eMin*0.5){const ratio=buoyE/Math.max(modelE,0.01);if(ratio>2||ratio<0.5){level=Math.max(0,level-1);reasons.push(`the buoy shows the models running ${ratio>1?'low':'high'} right now`);}else reasons.push('the buoy agrees with the models right now');}
+    else reasons.push('buoy and models both show little usable swell right now');}
+  else reasons.push('buoy check unavailable');
+  return {level,label:['Low','Medium','High'][level],cls:['lo','md','hi'][level],reasons};
+}
+function renderVerdict(){
+  const dl=hours.filter(h=>h.daylight);if(!dl.length)return;
+  const best=dl.reduce((a,b)=>b.score>a.score?b:a);
+  const idx=hours.indexOf(best);let a=idx,b=idx;const floor=Math.max(4,best.score-2);
+  while(a>0&&hours[a-1].daylight&&hours[a-1].score>=floor)a--;
+  while(b<hours.length-1&&hours[b+1].daylight&&hours[b+1].score>=floor)b++;
+  const verb=best.score>=7?'Go':best.score>=4?'Maybe':'Nothing worth the drive';
+  $('v-big').innerHTML=`${SPOTS[spotKey].name}. ${verb}: ${fmtDay(best.day)}, ${fmtHr(hours[a].t)} to ${fmtHr(hours[b].t)} (peak ${best.score.toFixed(1)}${faceEstimate(best)?', '+faceText(best):''})`;
+  const cf=confidenceFor(best);
+  $('v-conf').innerHTML=`<span class="conf ${cf.cls}">Confidence ${cf.label}</span> <span class="muted" style="font-size:.85rem">${cf.reasons.join('; ')}.</span>`;
+  const top=best.A.parts[0],topB=best.B&&best.B.parts[0],topC=best.C&&best.C.parts[0];
+  $('v-detail').innerHTML=`A ${fmtS(best.sA)}: ${top?`${fmtH(top.H)} at ${top.T.toFixed(0)} s ${compass(top.D)} leaving ${PTS[SPOTS[spotKey].ref].name} ${Math.round(top.lag*10)/10} h earlier`:'no aligned swell'}. B ${fmtS(best.sB)}: ${topB?`${fmtH(topB.H)} at ${topB.T.toFixed(0)} s ${compass(topB.D)} at the spot`:'no aligned swell'}. C ${fmtS(best.sC)}: ${topC?`NWS "${compass(topC.D)} ${(topC.H/0.3048).toFixed(0)} ft at ${topC.T} seconds" (${topC.label.toLowerCase()})`:best.sC==null?'no NWS period covers this hour':'NWS lists no aligned swell'}. Wind ${best.spd!=null?Math.round(best.spd)+' kn '+compass(best.wdir)+' ('+best.wkind+')':'unknown'}; tide ${best.tf.label}.`;
+}
+function renderReality(){
+  const el=$('buoy-kv');const head=$('buoy-head');const S=SPOTS[spotKey];const R=PTS[S.ref];
+  if(!realityCheck){
+    let why=data.buoyErr?BUOYS[S.buoyIn].name+' request failed ('+data.buoyErr+')':!data.buoy[S.buoyIn]?BUOYS[S.buoyIn].name+' has not loaded':!data.swell?'the offshore model has not loaded':'the current hour ('+nowLocalISO()+') is not in the loaded forecast';
+    head.textContent='No buoy reading right now: '+why+'. Confidence is not buoy-checked until this loads; reload to retry.';el.innerHTML='';return;}
+  const r=realityCheck;const b=r.buoy;const main=b.parts.slice().sort((x,y)=>(y.H*y.H*(y.T||0))-(x.H*x.H*(x.T||0)))[0];
+  const ago=Math.round((Date.now()-new Date(b.t).getTime())/60000);
+  const where=S.group==='Strait'?(S.buoyIn==='46088'?'The swell passing Port Angeles, on its way to you,':'The swell entering the Strait'):'The swell off Westport';
+  let s1=main?`${where} is ${fmtH(main.H,0)} at ${main.T==null?'?':main.T.toFixed(0)} seconds from the ${compass(main.D)}, measured ${ago} minutes ago.`:'The reference buoy has no wave reading right now.';
+  let s2;const big=Math.max(r.buoyE,r.modelE);
+  if(big<P.eMin*0.5)s2='Not much of it is pointed at the beach, and the models agree, so there is nothing to argue about yet.';
+  else{const ratio=r.buoyE/Math.max(r.modelE,0.01);s2=ratio>2?'That is more usable swell than the models expected, so today could be better than forecast.':ratio<0.5?'That is less usable swell than the models expected, so today is likely worse than forecast.':'That matches what the models expected, which is a good sign for the rest of the forecast.';}
+  let s3='';if(r.bOut){const c=r.bOut;const m2=c.parts.slice().sort((x,y)=>y.H-x.H)[0];const h2=m2?m2.H:c.wvht;if(h2!=null&&main)s3=` By Port Angeles it has dropped to ${fmtH(h2,0)}, so roughly ${Math.round(100*h2/main.H)}% of the height survived the trip.`;}
+  head.textContent=s1+' '+s2+s3;
+  const when=new Date(b.t).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit',timeZone:TZ});
+  const rows=[];
+  rows.push([BUOYS[S.buoyIn].name,`${when}: ${b.parts.map(p=>`${fmtH(p.H)} at ${p.T==null?'?':p.T.toFixed(0)} s from ${compass(p.D)}${p.D==null?'':' ('+Math.round(p.D)+'°)'}`).join(', ')||'no wave data'}${b.ws!=null?`; wind ${Math.round(b.ws)} kn ${compass(b.wdir)}`:''}`]);
+  rows.push(['Usable swell energy now',`buoy ${r.buoyE.toFixed(0)} · GFS model at ${R.name} ${r.modelE.toFixed(0)}${r.nwsE!=null?' · NWS wave detail '+r.nwsE.toFixed(0):''}`]);
+  if(r.bOut){const c=r.bOut;const w2=new Date(c.t).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit',timeZone:TZ});rows.push([BUOYS[S.buoyOut].name,`${w2}: ${c.parts.length?c.parts.map(p=>`${fmtH(p.H)} at ${p.T==null?'?':p.T.toFixed(0)} s from ${compass(p.D)}`).join(', '):(c.wvht!=null?fmtH(c.wvht)+' total, no period or direction reported':'no wave data')}`]);}
+  el.innerHTML=rows.map(([k,v])=>`<b>${k}</b><span>${v}</span>`).join('');
+}
+
+// ---- log UI ----
+function nearestHour(tISO){if(!hours.length)return null;const ts=new Date(tISO).getTime();let best=null,bd=Infinity;hours.forEach(h=>{const d=Math.abs(new Date(h.t).getTime()-ts);if(d<bd){bd=d;best=h;}});return bd<=3600000*1.5?best:null;}
+function snapOf(h){const a=h.A.parts[0]||{},b=h.B&&h.B.parts[0]||{};return {score:h.score,sA:h.sA,sB:h.sB,sC:h.sC,Ha:a.H||0,Ta:a.T||0,Da:a.D==null?null:Math.round(a.D),Hb:b.H||0,Tb:b.T||0,Db:b.D==null?null:Math.round(b.D),spd:h.spd,wdir:h.wdir,wkind:h.wkind,tide:h.tf.label};}
+function initLog(){
+  LOG=loadLocalLog();
+  const sel=$('lg-spot');Object.keys(SPOTS).forEach(k=>{const o=document.createElement('option');o.value=k;o.textContent=SPOTS[k].group+': '+SPOTS[k].name;sel.appendChild(o);});
+  sel.value=spotKey;
+  const now=new Date();const pad=n=>String(n).padStart(2,'0');$('lg-time').value=`${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())}T${pad(now.getHours())}:00`;
+  try{$('lg-who').value=localStorage.getItem('ssw-who')||'me';}catch(e){$('lg-who').value='me';}
+  $('lg-save').addEventListener('click',async()=>{
+    const spot=$('lg-spot').value,t=$('lg-time').value,face=parseFloat($('lg-face').value),q=parseInt($('lg-q').value),wind=$('lg-wind').value,who=$('lg-who').value.trim()||'me',note=$('lg-note').value.trim();
+    if(!t||isNaN(face)||!q){$('lg-msg').textContent='Need the time, a face height and a quality.';return;}
+    let snap=null;if(spot===spotKey){const h=nearestHour(t);if(h)snap=snapOf(h);}
+    const entry={id:String(Date.now()),spot,t,face,q,wind,who,note,snap};
+    LOG.push(entry);saveLocalLog(LOG);try{localStorage.setItem('ssw-who',who);}catch(e){}
+    $('lg-msg').textContent='Saving…';
+    const ok=await pushToSheet(entry);
+    $('lg-msg').textContent=(snap?'Saved with the forecast for that hour.':'Saved. No forecast captured for that hour (select that spot first, or the hour is outside the loaded range).')+(SHEET_URL?(ok?' Synced to the sheet.':' Could not reach the sheet; kept in this browser, will retry next sync.'):'');
+    $('lg-face').value='';$('lg-q').value='';$('lg-wind').value='';$('lg-note').value='';
+    renderLog();compute();
+  });
+  $('lg-csv').addEventListener('click',()=>{
+    const cols=['t','spot','who','face','q','wind','note','score','sA','sB','sC','Ha','Ta','Da','Hb','Tb','Db','spd','wdir','wkind','tide'];
+    const esc=v=>'"'+String(v==null?'':v).replace(/"/g,'""')+'"';
+    const lines=[cols.join(',')].concat(LOG.map(r=>cols.map(c=>esc(c in r?r[c]:(r.snap?r.snap[c]:''))).join(',')));
+    const a=document.createElement('a');a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(lines.join('\n'));a.download='swell-watch-log.csv';document.body.appendChild(a);a.click();a.remove();
+  });
+  renderLog();
+}
+function renderLog(){
+  const log=LOG.slice().sort((a,b)=>b.t.localeCompare(a.t));
+  const tb=$('lg-table').querySelector('tbody');tb.innerHTML='';
+  log.forEach(r=>{const s=r.snap||{};const tr=document.createElement('tr');
+    tr.innerHTML=`<td>${r.t.replace('T',' ')}</td><td>${SPOTS[r.spot]?SPOTS[r.spot].name:r.spot}</td><td>${(r.who||'').replace(/</g,'&lt;')}</td><td class="n">${r.face}</td><td class="n">${r.q}</td><td>${r.wind||''}</td><td class="n">${s.score!=null?Number(s.score).toFixed(1):'—'}</td><td class="n">${fmtS(s.sA)}</td><td class="n">${fmtS(s.sB)}</td><td class="n">${fmtS(s.sC)}</td><td>${s.Ha?fmtH(s.Ha)+' '+Number(s.Ta).toFixed(0)+'s '+compass(s.Da):'—'}</td><td>${s.Hb?fmtH(s.Hb)+' '+Number(s.Tb).toFixed(0)+'s '+compass(s.Db):'—'}</td><td>${s.spd!=null?Math.round(s.spd)+' kn '+compass(s.wdir):'—'}</td><td>${s.tide||'—'}</td><td style="white-space:normal;max-width:220px">${(r.note||'').replace(/</g,'&lt;')}</td><td><button class="x" title="Delete" data-id="${r.id}">✕</button></td>`;
+    tb.appendChild(tr);});
+  tb.querySelectorAll('button.x').forEach(b=>b.addEventListener('click',async()=>{const id=b.dataset.id;LOG=LOG.filter(r=>String(r.id)!==id);saveLocalLog(LOG);await deleteFromSheet(id);renderLog();compute();}));
+  const mine=LOG.filter(r=>r.spot===spotKey&&r.snap);
+  const el=$('lg-insight');
+  if(!mine.length){el.textContent='No sessions logged for '+SPOTS[spotKey].name+' yet. The face estimate on the cards is a placeholder until there are three.';return;}
+  const fr=faceRatio();const good=mine.filter(r=>r.q>=4),poor=mine.filter(r=>r.q<=2);
+  const avg=a=>a.length?(a.reduce((x,r)=>x+Number(r.snap.score),0)/a.length).toFixed(1):null;
+  let msg=`${mine.length} session${mine.length>1?'s':''} at ${SPOTS[spotKey].name}. `;
+  msg+=fr.calibrated?`Face ratio calibrated from ${fr.n} sessions: rideable face ≈ ${fr.ratio.toFixed(2)} × nearshore model height. `:`Face estimate still a placeholder (${fr.n} of 3 sessions with a usable nearshore height). `;
+  if(good.length&&poor.length){const g=+avg(good),p=+avg(poor);msg+=`Good sessions averaged score ${g}, poor ones ${p}. `;msg+=g<5?'Good days are scoring low: lower the energy thresholds or widen the direction window. ':(p>=4?'Poor days are scoring high: raise the energy thresholds. ':'The score is separating good from poor days.');}
+  else if(good.length)msg+=`Good sessions averaged score ${avg(good)}. `;
+  else if(poor.length)msg+=`Poor sessions averaged score ${avg(poor)}. `;
+  el.textContent=msg;
+}
+
+// ---- boot ----
+async function boot(){
+  renderSpotButtons();fillTune();initLog();
+  $('tog-detail').addEventListener('click',()=>{const on=document.body.classList.toggle('showdet');$('tog-detail').textContent=on?'Hide the four estimates':'Show the four estimates';});
+  $('tog-night').addEventListener('click',()=>{showNight=!showNight;$('tog-night').textContent=showNight?'Hide night hours':'Show night hours';renderDetail();});
+  await Promise.all([loadSpotData(),syncLogFromSheet()]);
+  if(data.swell&&data.wind)compute();
+  else{$('v-big').textContent='Forecast could not load.';$('v-detail').textContent='A data source did not answer. Reload. If this file is open from disk and Brave shields are on, allow the page.';}
+}
+boot();
+})();
+</script>
+</body>
+</html>
