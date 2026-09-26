@@ -54,9 +54,10 @@ h1,h2{margin:0;font-weight:400}
 .when{font-size:19px;font-weight:700;color:var(--bright);overflow-wrap:anywhere}
 .big{font-family:var(--pix);font-size:40px;line-height:1;color:var(--teal)}
 .guess{font-size:9px;padding:2px 5px;border:1px dashed var(--dim);color:var(--muted);letter-spacing:.1em;vertical-align:middle;margin-left:6px}
-@keyframes spin{to{transform:rotate(270deg)}}
-#gauge.loading #g-arc{stroke:var(--amber);stroke-dasharray:70 390;transform-origin:75px 75px;animation:spin 1s linear infinite}
-@media (prefers-reduced-motion:reduce){#gauge.loading #g-arc{animation:none}}
+@keyframes blink{0%,55%{opacity:1}56%,100%{opacity:.18}}
+.blink,#gauge.loading #g-verb{animation:blink 1s linear infinite}
+#g-arc{transition:stroke-dasharray .35s ease-out}
+@media (prefers-reduced-motion:reduce){.blink,#gauge.loading #g-verb{animation:none}#g-arc{transition:none}}
 .spotname{font-family:var(--pix);font-size:22px;line-height:1;color:var(--teal);letter-spacing:.02em}
 .conf{display:inline-block;align-self:flex-start;font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;padding:6px 10px;color:var(--bg);background:var(--dim);margin-top:4px}
 .conf.hi{background:var(--green)}.conf.md{background:var(--gold)}.conf.lo{background:var(--red)}
@@ -168,13 +169,13 @@ button.x{font:inherit;background:none;border:0;color:var(--red);cursor:pointer;p
       <svg width="150" height="150" viewBox="0 0 150 150" id="gauge" class="loading" aria-label="Score gauge">
         <circle cx="75" cy="75" r="62" fill="none" stroke="#1E1E24" stroke-width="12"></circle>
         <circle id="g-arc" cx="75" cy="75" r="62" fill="none" stroke="#4A4A55" stroke-width="12" stroke-dasharray="0 390" transform="rotate(-90 75 75)"></circle>
-        <text id="g-num" x="75" y="70" text-anchor="middle" font-family="Silkscreen, monospace" font-size="38" fill="#7A7A85">…</text>
-        <text id="g-verb" x="75" y="94" text-anchor="middle" font-size="10" fill="#7A7A85" letter-spacing="2"></text>
+        <text id="g-num" x="75" y="72" text-anchor="middle" font-family="Silkscreen, monospace" font-size="30" fill="#FFA02E">0%</text>
+        <text id="g-verb" x="75" y="94" text-anchor="middle" font-size="10" fill="#FFA02E" letter-spacing="2">LOADING</text>
       </svg>
       <div style="display:flex;flex-direction:column;gap:8px;min-width:0">
-        <div class="verb" id="v-verb">LOADING</div>
-        <div class="when" id="v-when">…</div>
-        <div class="conf" id="v-conf">Confidence …</div>
+        <div class="verb blink" id="v-verb" style="color:var(--amber)">LOADING</div>
+        <div class="when" id="v-when">0 of 7 sources in</div>
+        <div class="conf" id="v-conf" style="visibility:hidden">Confidence …</div>
       </div>
     </div>
     <div class="dash" style="display:flex;gap:14px;align-items:flex-end;flex-wrap:wrap;margin-top:4px">
@@ -379,8 +380,8 @@ function renderSpotButtons(){
 async function selectSpot(k){
   spotKey=k;try{localStorage.setItem('ssw-spot',k);}catch(e){}
   loadParams();fillTune();renderSpotButtons();
-  $('v-verb').textContent='LOADING';$('v-when').textContent='…';$('v-spot').textContent=SPOTS[k].name.toUpperCase();$('gauge').classList.add('loading');$('g-num').textContent='';$('g-verb').textContent='';
-  await loadSpotData();compute();
+  $('v-spot').textContent=SPOTS[k].name.toUpperCase();setLoading(6);
+  await loadSpotData();doneLoading();compute();
 }
 
 // ---- geometry (derived) ----
@@ -497,15 +498,37 @@ async function loadBuoy(id){
   }
   cache[key]=out;return out;
 }
+let prog={done:0,total:1};
+function setLoading(total){
+  prog={done:0,total};
+  $('gauge').classList.add('loading');$('gauge').setAttribute('aria-label','Loading forecast');
+  $('g-verb').textContent='LOADING';$('g-verb').setAttribute('fill','#FFA02E');
+  $('v-verb').textContent='LOADING';$('v-verb').classList.add('blink');$('v-verb').style.color='var(--amber)';
+  $('v-conf').style.visibility='hidden';
+  showProg();
+}
+function progTick(){prog.done=Math.min(prog.total,prog.done+1);showProg();}
+function showProg(){
+  if(!$('gauge').classList.contains('loading'))return;
+  const pct=Math.round(100*prog.done/prog.total);
+  $('g-arc').setAttribute('stroke','#FFA02E');$('g-arc').setAttribute('stroke-dasharray',arcDash(pct/100,62));
+  $('v-when').textContent=`${prog.done} of ${prog.total} sources in`;
+  $('g-num').textContent=pct+'%';$('g-num').setAttribute('fill','#FFA02E');$('g-num').setAttribute('font-size','30');$('g-num').setAttribute('y','72');
+}
+function doneLoading(){
+  $('gauge').classList.remove('loading');$('v-verb').classList.remove('blink');$('v-conf').style.visibility='';
+  $('g-num').setAttribute('font-size','38');$('g-num').setAttribute('y','70');
+}
 async function loadSpotData(){
   const S=SPOTS[spotKey];data.buoy={};data.buoyErr=null;
+  const t=p=>p.finally(progTick);
   await Promise.all([
-    loadOffshore().then(j=>{data.swell=j;setSt('st-swell','on','GFS '+j._model.replace('GFS Wave ',''));}).catch(e=>{data.swell=null;setSt('st-swell','err','A failed ('+e.message+')');}),
-    loadLocal().then(j=>{data.local=j;setSt('st-local','on','MFWAM');}).catch(e=>{data.local=null;setSt('st-local','err','B failed ('+e.message+')');}),
-    loadWind().then(j=>{data.wind=j;setSt('st-wind','on','Wind');}).catch(e=>{data.wind=null;setSt('st-wind','err','Wind failed ('+e.message+')');}),
-    loadTides().then(t=>{data.tides=t;setSt('st-tide','on','Tides '+S.tide.name);}).catch(e=>{data.tides=null;setSt('st-tide','err','Tides failed ('+e.message+')');}),
-    loadNWS().then(n=>{data.nws=n;const sA=zoneSection(n.text,S.waveZone);const sB=zoneSection(n.text,S.windZone);$('nwsA').textContent=sA||'(zone not found)';$('nwsB').textContent=sB||'(zone not found)';$('nws-time').textContent=n.time?'Issued '+new Date(n.time).toLocaleString('en-US',{timeZone:TZ}):'';data.nwsPeriods=parseNWSPeriods(sA);const np=data.nwsPeriods?data.nwsPeriods.filter(p=>p.comps.length).length:0;setSt('st-nws',np?'on':'err',np?`NWS ${S.waveZone}`:'NWS: no wave detail');}).catch(e=>{data.nwsPeriods=null;setSt('st-nws','err','C failed ('+e.message+')');$('nwsA').textContent='Could not load.';$('nwsB').textContent='Could not load.';}),
-    Promise.all([loadBuoy(S.buoyIn).then(b=>{data.buoy[S.buoyIn]=b;}).catch(e=>{data.buoyErr=e.message;}),S.buoyOut?loadBuoy(S.buoyOut).then(b=>{data.buoy[S.buoyOut]=b;}).catch(()=>{}):Promise.resolve()]).then(()=>{setSt('st-buoy',data.buoy[S.buoyIn]?'on':'err',data.buoy[S.buoyIn]?'Buoy '+S.buoyIn+(S.buoyOut&&data.buoy[S.buoyOut]?' + '+S.buoyOut:''):'Buoy down');})
+    t(loadOffshore().then(j=>{data.swell=j;setSt('st-swell','on','GFS '+j._model.replace('GFS Wave ',''));}).catch(e=>{data.swell=null;setSt('st-swell','err','A failed ('+e.message+')');})),
+    t(loadLocal().then(j=>{data.local=j;setSt('st-local','on','MFWAM');}).catch(e=>{data.local=null;setSt('st-local','err','B failed ('+e.message+')');})),
+    t(loadWind().then(j=>{data.wind=j;setSt('st-wind','on','Wind');}).catch(e=>{data.wind=null;setSt('st-wind','err','Wind failed ('+e.message+')');})),
+    t(loadTides().then(t=>{data.tides=t;setSt('st-tide','on','Tides '+S.tide.name);}).catch(e=>{data.tides=null;setSt('st-tide','err','Tides failed ('+e.message+')');})),
+    t(loadNWS().then(n=>{data.nws=n;const sA=zoneSection(n.text,S.waveZone);const sB=zoneSection(n.text,S.windZone);$('nwsA').textContent=sA||'(zone not found)';$('nwsB').textContent=sB||'(zone not found)';$('nws-time').textContent=n.time?'Issued '+new Date(n.time).toLocaleString('en-US',{timeZone:TZ}):'';data.nwsPeriods=parseNWSPeriods(sA);const np=data.nwsPeriods?data.nwsPeriods.filter(p=>p.comps.length).length:0;setSt('st-nws',np?'on':'err',np?`NWS ${S.waveZone}`:'NWS: no wave detail');}).catch(e=>{data.nwsPeriods=null;setSt('st-nws','err','C failed ('+e.message+')');$('nwsA').textContent='Could not load.';$('nwsB').textContent='Could not load.';})),
+    t(Promise.all([loadBuoy(S.buoyIn).then(b=>{data.buoy[S.buoyIn]=b;}).catch(e=>{data.buoyErr=e.message;}),S.buoyOut?loadBuoy(S.buoyOut).then(b=>{data.buoy[S.buoyOut]=b;}).catch(()=>{}):Promise.resolve()]).then(()=>{setSt('st-buoy',data.buoy[S.buoyIn]?'on':'err',data.buoy[S.buoyIn]?'Buoy '+S.buoyIn+(S.buoyOut&&data.buoy[S.buoyOut]?' + '+S.buoyOut:''):'Buoy down');}))
   ]);
 }
 
@@ -696,7 +719,6 @@ function renderVerdict(){
   while(b<hours.length-1&&hours[b+1].daylight&&hours[b+1].score>=floor)b++;
   const verb=best.score>=7?'GO':best.score>=4?'MAYBE':'SKIP';
   const c=hexCol(best.score);
-  $('gauge').classList.remove('loading');$('g-arc').removeAttribute('style');
   $('g-arc').setAttribute('stroke-dasharray',arcDash(best.score/10,62));$('g-arc').setAttribute('stroke',c);
   $('g-num').textContent=best.score.toFixed(1);$('g-num').setAttribute('fill',c);$('g-verb').textContent=verb;
   $('gauge').setAttribute('aria-label',`Score ${best.score.toFixed(1)} of 10, ${verb}`);
@@ -797,9 +819,11 @@ async function boot(){
   renderSpotButtons();fillTune();initLog();
   $('tog-detail').addEventListener('click',()=>{const on=document.body.classList.toggle('showdet');$('tog-detail').textContent=on?'Hide the four estimates':'Show the four estimates';});
   $('tog-night').addEventListener('click',()=>{showNight=!showNight;$('tog-night').textContent=showNight?'Hide night hours':'Show night hours';renderDetail();});
-  await Promise.all([loadSpotData(),syncLogFromSheet()]);
+  $('v-spot').textContent=SPOTS[spotKey].name.toUpperCase();setLoading(7);
+  await Promise.all([loadSpotData(),syncLogFromSheet().finally(progTick)]);
+  doneLoading();
   if(data.swell&&data.wind)compute();
-  else{$('gauge').classList.remove('loading');$('v-verb').textContent='NO DATA';$('v-when').textContent='Forecast could not load';$('v-detail').textContent='A data source did not answer. Reload.';}
+  else{$('v-verb').textContent='NO DATA';$('v-when').textContent='Forecast could not load';$('v-detail').textContent='A data source did not answer. Reload.';}
 }
 boot();
 })();
