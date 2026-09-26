@@ -54,6 +54,9 @@ h1,h2{margin:0;font-weight:400}
 .key b{font-weight:400;color:#A7A49B;letter-spacing:.04em}
 .grid{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:18px}
 .rosewrap>div{min-width:0;flex:1}
+.wgauge{display:flex;flex-direction:column;align-items:center;gap:6px}
+.wgauge svg{width:100%;max-width:400px;height:auto}
+.wgauge .leg{display:flex;flex-wrap:wrap;justify-content:center;gap:4px 14px;font-size:11px;color:#A7A49B}
 .c5{grid-column:span 5}.c7{grid-column:span 7}.c4{grid-column:span 4}.c3{grid-column:span 3}.c12{grid-column:span 12}
 .row{display:flex;justify-content:space-between;gap:10px;align-items:baseline;flex-wrap:wrap}
 .verb{font-family:var(--pix);font-size:26px;line-height:1;margin-top:2px}
@@ -228,6 +231,7 @@ button.x{font:inherit;background:none;border:0;color:var(--red);cursor:pointer;p
         <div class="note" id="b-out"></div>
       </div>
     </div>
+    <div class="wgauge dash" id="wgauge"></div>
     <details><summary>The numbers behind that</summary><div class="kv" id="buoy-kv" style="margin-top:8px"></div><p class="small" id="buoy-head" style="margin:8px 0 0"></p></details>
   </section>
 
@@ -768,16 +772,58 @@ function renderVerdict(){
   const top=best.A.parts[0],topB=best.B&&best.B.parts[0],topC=best.C&&best.C.parts[0];
   $('v-detail').innerHTML=`${cf.reasons.join('; ')}. A ${fmtS(best.sA)}: ${top?`${fmtH(top.H)} @ ${top.T.toFixed(0)} s ${compass(top.D)}, ${Math.round(top.lag*10)/10} h out`:'no aligned swell'} · B ${fmtS(best.sB)}: ${topB?`${fmtH(topB.H)} @ ${topB.T.toFixed(0)} s ${compass(topB.D)} at the spot`:'none'} · C ${fmtS(best.sC)}: ${topC?`NWS "${compass(topC.D)} ${(topC.H/0.3048).toFixed(0)} ft at ${topC.T} s"`:best.sC==null?'no NWS period':'none listed'}.`;
 }
+function renderWindowGauge(dNow,dFc){
+  const el=$('wgauge');if(!el)return;
+  const lo0=P.winLo,hi0=P.winHi,fade=P.fade||0;
+  const width=((hi0-lo0)%360+360)%360||360;
+  const SPAN=160,lo=lo0+width/2-SPAN/2;
+  const rel=d=>{if(d==null)return null;const x=((d-lo)%360+360)%360;if(x<=SPAN)return x;return (x-SPAN)<(360-x)?x:x-360;};
+  const cx=160,cy=168,R=118;
+  const ang=x=>Math.PI*(1-x/SPAN);
+  const pt=(x,r)=>[cx+r*Math.cos(ang(x)),cy-r*Math.sin(ang(x))];
+  const f=n=>n.toFixed(1);
+  const arc=(x1,x2,r)=>{x1=Math.max(0,x1);x2=Math.min(SPAN,x2);if(x2<=x1)return '';const [ax,ay]=pt(x1,r),[bx,by]=pt(x2,r);return `M${f(ax)} ${f(ay)} A${r} ${r} 0 0 1 ${f(bx)} ${f(by)}`;};
+  const wlo=(SPAN-width)/2,whi=wlo+width;
+  let g='';
+  g+=`<path d="${arc(0,SPAN,R)}" fill="none" stroke="#1E1E24" stroke-width="20"></path>`;
+  [[.42,0,1/3],[.24,1/3,2/3],[.11,2/3,1]].forEach(([op,a,b])=>{
+    g+=`<path d="${arc(wlo-fade*b,wlo-fade*a,R)}" fill="none" stroke="#3DDC84" stroke-width="20" opacity="${op}"></path>`;
+    g+=`<path d="${arc(whi+fade*a,whi+fade*b,R)}" fill="none" stroke="#3DDC84" stroke-width="20" opacity="${op}"></path>`;});
+  g+=`<path d="${arc(wlo,whi,R)}" fill="none" stroke="#3DDC84" stroke-width="20"></path>`;
+  for(let deg=Math.ceil(lo/10)*10;deg<=lo+SPAN;deg+=10){const x=deg-lo;const [a1,b1]=pt(x,R+13),[a2,b2]=pt(x,R+(deg%30===0?21:17));g+=`<line x1="${f(a1)}" y1="${f(b1)}" x2="${f(a2)}" y2="${f(b2)}" stroke="#4A4A55" stroke-width="${deg%30===0?1.5:1}"></line>`;}
+  for(let k=Math.ceil(lo/22.5);k*22.5<=lo+SPAN;k++){const deg=k*22.5,x=deg-lo;if(x<6||x>SPAN-6)continue;const [tx,ty]=pt(x,R+33);g+=`<text x="${f(tx)}" y="${f(ty+4)}" text-anchor="middle" font-size="11" fill="#A7A49B" letter-spacing="1">${CN[((k%16)+16)%16]}</text>`;}
+  [[wlo,lo0],[whi,hi0]].forEach(([x,d])=>{const [tx,ty]=pt(x,R-26);g+=`<text x="${f(tx)}" y="${f(ty+4)}" text-anchor="middle" font-size="11" font-weight="700" fill="#3DDC84">${Math.round(((d%360)+360)%360)}°</text>`;});
+  if(dFc!=null){const x=rel(dFc);if(x>=0&&x<=SPAN){const [p1x,p1y]=pt(x,R+11),[p2x,p2y]=pt(x-2.6,R+24),[p3x,p3y]=pt(x+2.6,R+24);g+=`<polygon points="${f(p1x)},${f(p1y)} ${f(p2x)},${f(p2y)} ${f(p3x)},${f(p3y)}" fill="#FFA02E"></polygon>`;}}
+  let status='NO DIRECTION READING',scol='#7A7A85',num='—°';
+  if(dNow!=null){
+    const d=((dNow%360)+360)%360;num=`${Math.round(d)}°`;
+    const x=rel(d);const xc=Math.max(0,Math.min(SPAN,x));const out=x<0||x>SPAN;
+    const off=Math.min(angDiff(d,lo0),angDiff(d,hi0));const inWin=inArc(d,lo0,hi0);
+    const side=angDiff(d,lo0)<angDiff(d,hi0)?'SOUTH':'NORTH';
+    if(inWin){status='IN THE WINDOW';scol='#3DDC84';}
+    else if(off<=fade){status=`ON THE EDGE · ${Math.round(off)}° TOO FAR ${side}`;scol='#E6B93D';}
+    else{status=`OUTSIDE · ${Math.round(off)}° TOO FAR ${side}`;scol='#FF5C4D';}
+    const [nx,ny]=pt(xc,R-12);
+    g+=`<line x1="${cx}" y1="${cy}" x2="${f(nx)}" y2="${f(ny)}" stroke="${scol}" stroke-width="4" stroke-linecap="round"${out?' stroke-dasharray="6 5"':''}></line>`;
+  }
+  g+=`<circle cx="${cx}" cy="${cy}" r="7" fill="#FFA02E"></circle>`;
+  g+=`<text x="${cx}" y="${cy+46}" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="42" font-weight="700" fill="${scol}">${num}<tspan font-size="18" dx="8" fill="#A7A49B">${dNow!=null?compass(dNow):''}</tspan></text>`;
+  g+=`<text x="${cx}" y="${cy+68}" text-anchor="middle" font-size="12" font-weight="700" letter-spacing="1.5" fill="${scol}">${status}</text>`;
+  el.innerHTML=`<svg viewBox="0 0 320 244" role="img" aria-label="Swell direction ${num}, ${status.toLowerCase()}; window ${lo0} to ${hi0} degrees">${g}</svg>`+
+    `<div class="leg"><span><span style="color:#3DDC84">■</span> window ${lo0}–${hi0}°</span><span><span style="color:${scol}">│</span> buoy now</span>${dFc!=null?'<span><span style="color:#FFA02E">▼</span> forecast, best window</span>':''}</div>`;
+}
 function renderReality(){
   const el=$('buoy-kv');const head=$('buoy-head');const S=SPOTS[spotKey];const R=PTS[S.ref];
   $('b-lbl').textContent='Measured now · '+S.buoyIn;
   if(!realityCheck){
     let why=data.buoyErr?BUOYS[S.buoyIn].name+' request failed ('+data.buoyErr+')':!data.buoy[S.buoyIn]?BUOYS[S.buoyIn].name+' has not loaded':!data.swell?'the offshore model has not loaded':'the current hour is not in the loaded forecast';
     $('b-main').textContent='no reading';$('b-kind').textContent=why;$('b-agree').textContent='confidence is not buoy-checked';$('b-out').textContent='';head.textContent='';el.innerHTML='';
-    $('rose-arrow').setAttribute('opacity','0');return;}
+    $('rose-arrow').setAttribute('opacity','0');
+    {const bo=bestOverall();renderWindowGauge(null,bo&&bo.A.parts[0]?bo.A.parts[0].D:null);}
+    return;}
   const r=realityCheck;const b=r.buoy;const main=b.parts.slice().sort((x,y)=>(y.H*y.H*(y.T||0))-(x.H*x.H*(x.T||0)))[0];
   const ago=Math.round((Date.now()-new Date(b.t).getTime())/60000);
-  if(main){$('b-main').innerHTML=`${fmtH(main.H,0)} @ ${main.T==null?'?':main.T.toFixed(0)} s <span style="color:var(--teal)">${compass(main.D)}</span>`;
+  if(main){$('b-main').innerHTML=`${fmtH(main.H,0)} @ ${main.T==null?'?':main.T.toFixed(0)} s <span style="color:var(--teal)">${compass(main.D)}${main.D==null?'':' '+Math.round(main.D)+'°'}</span>`;
     $('rose-arrow').setAttribute('opacity','1');$('rose-arrow').setAttribute('transform',`rotate(${Math.round(main.D||0)} 59 59)`);
     const inWin=main.T!=null&&main.T>=P.minPeriod&&dirCredit(main.D)>=.99;
     $('b-kind').textContent=(main.T!=null&&main.T<P.minPeriod?'short period, mostly chop':inWin?'aligned with the beach':'not aimed at the beach')+` · ${ago} min ago`;}
@@ -790,6 +836,7 @@ function renderReality(){
   $('b-agree').textContent=s2;$('b-agree').style.color=col;
   let s3='';if(r.bOut){const c=r.bOut;const m2=c.parts.slice().sort((x,y)=>y.H-x.H)[0];const h2=m2?m2.H:c.wvht;if(h2!=null&&main)s3=`past Port Angeles: ${fmtH(h2,0)}, ${Math.round(100*h2/main.H)}% survived`;}
   $('b-out').textContent=s3;
+  {const bo=bestOverall();renderWindowGauge(main?main.D:null,bo&&bo.A.parts[0]?bo.A.parts[0].D:null);}
   const when=new Date(b.t).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit',timeZone:TZ});
   const rows=[];
   rows.push([BUOYS[S.buoyIn].name,`${when}: ${b.parts.map(p=>`${fmtH(p.H)} at ${p.T==null?'?':p.T.toFixed(0)} s from ${compass(p.D)}${p.D==null?'':' ('+Math.round(p.D)+'°)'}`).join(', ')||'no wave data'}${b.ws!=null?`; wind ${Math.round(b.ws)} kn ${compass(b.wdir)}`:''}`]);
