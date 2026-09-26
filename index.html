@@ -42,10 +42,16 @@ h1,h2{margin:0;font-weight:400}
 .spot{font:inherit;font-size:11px;letter-spacing:.08em;text-transform:uppercase;padding:7px 11px;border:1px solid var(--line);background:transparent;color:#A7A49B;cursor:pointer;min-height:32px}
 .spot.sel{background:var(--amber);border-color:var(--amber);color:var(--bg);font-weight:700}
 .spot:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
-.status{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:4px 12px;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
-.status span::before{content:"● ";color:var(--dim)}
-.status span.on{color:var(--green)}.status span.on::before{color:var(--green)}
-.status span.err{color:var(--red)}.status span.err::before{color:var(--red)}
+.srcrow{display:flex;align-items:center;gap:10px 22px;flex-wrap:wrap;padding:12px 20px;border:1px dashed var(--line)}
+.status{display:flex;flex-wrap:wrap;gap:8px 22px;font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.status span{display:inline-flex;align-items:center;gap:7px;white-space:nowrap}
+.status span::before{content:"";width:9px;height:9px;border-radius:50%;background:var(--dim);flex:none}
+.status span.on{color:var(--green)}.status span.on::before{background:var(--green);box-shadow:0 0 6px rgba(61,220,132,.6)}
+.status span.err{color:var(--red)}.status span.err::before{background:var(--red)}
+.key{display:flex;gap:8px;flex-wrap:wrap}
+.key span{display:inline-flex;align-items:center;gap:8px;padding:6px 11px;border:1px solid var(--line);font-size:13px;font-weight:700;letter-spacing:.12em;text-transform:uppercase}
+.key i{width:14px;height:14px;display:inline-block;flex:none}
+.key b{font-weight:400;color:#A7A49B;letter-spacing:.04em}
 .grid{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:18px}
 .rosewrap>div{min-width:0;flex:1}
 .c5{grid-column:span 5}.c7{grid-column:span 7}.c4{grid-column:span 4}.c3{grid-column:span 3}.c12{grid-column:span 12}
@@ -145,6 +151,9 @@ button.x{font:inherit;background:none;border:0;color:var(--red);cursor:pointer;p
   .day .dn{font-size:9px}
   .day .dn small{display:none}
   .spotname{font-size:18px}
+  .key span{font-size:11px;padding:5px 8px}
+  .key i{width:11px;height:11px}
+  .status{font-size:11px;gap:6px 16px}
   .days{height:120px}
   .top>div:last-child{align-items:flex-start;width:100%}
   .spots{flex-wrap:nowrap;overflow-x:auto;padding-bottom:4px;width:100%;-webkit-overflow-scrolling:touch}
@@ -162,9 +171,6 @@ button.x{font:inherit;background:none;border:0;color:var(--red);cursor:pointer;p
   </div>
   <div style="display:flex;flex-direction:column;gap:8px;align-items:flex-end;max-width:100%">
     <div class="spots" id="spots"></div>
-    <div class="status" id="status">
-      <span id="st-swell">GFS</span><span id="st-local">MFWAM</span><span id="st-nws">NWS</span><span id="st-buoy">Buoys</span><span id="st-wind">Wind</span><span id="st-tide">Tides</span><span id="st-log">Log</span>
-    </div>
   </div>
 </header>
 
@@ -199,7 +205,7 @@ button.x{font:inherit;background:none;border:0;color:var(--red);cursor:pointer;p
   </section>
 
   <section class="pnl c7"><i class="c1"></i><i class="c2"></i>
-    <div class="row"><span class="lbl">Ten days · best daylight hour</span><span class="lbl"><span style="color:var(--green)">■ go 7+</span> &nbsp; <span style="color:var(--gold)">■ maybe 4 to 7</span> &nbsp; <span style="color:var(--red)">■ skip</span></span></div>
+    <div class="row" style="align-items:center"><span class="lbl">Ten days · best daylight hour</span><div class="key" aria-label="Score key"><span style="color:var(--green)"><i style="background:var(--green)"></i>Go <b>7+</b></span><span style="color:var(--gold)"><i style="background:var(--gold)"></i>Maybe <b>4 to 7</b></span><span style="color:var(--red)"><i style="background:var(--red)"></i>Skip <b>under 4</b></span></div></div>
     <div class="days" id="days"></div>
     <div class="dials dash" id="dials"></div>
   </section>
@@ -254,6 +260,13 @@ button.x{font:inherit;background:none;border:0;color:var(--red);cursor:pointer;p
     </div>
     <button class="btn" id="lg-save">SAVE SESSION</button>
     <div class="small" id="lg-msg"></div>
+  </section>
+
+  <section class="srcrow c12" aria-label="Data sources">
+    <span class="lbl">Sources</span>
+    <div class="status" id="status">
+      <span id="st-swell">GFS</span><span id="st-local">MFWAM</span><span id="st-nws">NWS</span><span id="st-buoy">Buoys</span><span id="st-wind">Wind</span><span id="st-tide">Tides</span><span id="st-log">Log</span>
+    </div>
   </section>
 
   <section class="pnl c12"><i class="c1"></i><i class="c2"></i>
