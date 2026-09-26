@@ -22,7 +22,7 @@
 *{box-sizing:border-box}
 html,body{margin:0}
 body{background:var(--bg);color:var(--ink);font-family:var(--mono);font-size:13px;line-height:1.45;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
-.wrap{max-width:1280px;margin:0 auto;padding-inline:16px;padding-block:18px 48px;display:grid;grid-template-columns:minmax(0,1fr);gap:18px}
+.wrap{max-width:1440px;margin:0 auto;padding-inline:16px;padding-block:18px 48px;display:grid;grid-template-columns:minmax(0,1fr);gap:18px}
 a{color:var(--amber)}
 h1,h2{margin:0;font-weight:400}
 .pix{font-family:var(--pix)}
@@ -57,7 +57,8 @@ h1,h2{margin:0;font-weight:400}
 .wgauge{display:flex;flex-direction:column;align-items:center;gap:6px}
 .wgauge svg{width:100%;max-width:400px;height:auto}
 .wgauge .leg{display:flex;flex-wrap:wrap;justify-content:center;gap:4px 14px;font-size:11px;color:#A7A49B}
-.c5{grid-column:span 5}.c7{grid-column:span 7}.c4{grid-column:span 4}.c3{grid-column:span 3}.c12{grid-column:span 12}
+.c5{grid-column:span 5}.c8{grid-column:span 8}
+.col{display:flex;flex-direction:column;gap:18px;min-width:0}.c7{grid-column:span 7}.c4{grid-column:span 4}.c3{grid-column:span 3}.c12{grid-column:span 12}
 .row{display:flex;justify-content:space-between;gap:10px;align-items:baseline;flex-wrap:wrap}
 .verb{font-family:var(--pix);font-size:26px;line-height:1;margin-top:2px}
 .when{font-size:19px;font-weight:700;color:var(--bright);overflow-wrap:anywhere}
@@ -86,15 +87,25 @@ tr.hotrow td:first-child{box-shadow:inset 3px 0 0 var(--amber)}
 .day .sc{font-family:var(--mono);font-size:24px;font-weight:700;line-height:1;text-align:center;margin-bottom:4px;font-variant-numeric:tabular-nums}
 .day .dn{font-size:10px;line-height:1.2;text-align:center;color:#A7A49B;margin-bottom:6px;white-space:nowrap}
 .day .dn small{display:block;font-size:9px;color:var(--muted)}
-.day.sel .dn{color:var(--bright)}
+.day.sel .dn,.day.sel .dn small{color:var(--teal);font-weight:700}
+.selarrow{display:block;margin:0 auto 4px;width:24px;height:16px}
+.stem{display:flex;gap:6px;height:18px}
+.stem div{flex:1;display:flex;justify-content:center}
+.stem i{display:block;width:3px;height:100%;background:var(--teal)}
+.drawer{border:2px solid var(--teal);background:#0C1719;padding:16px 18px;display:flex;flex-direction:column;gap:10px;min-width:0}
+.dtitle{font-size:13px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--teal)}
+@media (min-width:901px){#forecast .days{flex:1 1 250px;height:auto;min-height:250px}#forecast .drawer{flex:1 1 auto}#forecast .strip{flex:1 1 150px;height:auto;min-height:150px}}
 .day .barwrap{flex:none}
 .day .bar{width:100%;min-height:3px;opacity:.85}
-.day.sel .bar{opacity:1;outline:1.5px solid var(--bright)}
+.day.sel .bar{opacity:1;outline:2px solid var(--teal);outline-offset:2px}
 .day:focus-visible{outline:2px solid var(--amber)}
 
 .dials{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
 .dial{display:flex;gap:10px;align-items:center;min-width:0}
-.dial .t{font-size:11px;color:var(--ink);line-height:1.35}
+.dial .t{font-size:14px;color:var(--ink);line-height:1.35}
+.dial .t b{font-size:15px;color:var(--bright)}
+.dial .t2{font-size:12px;color:#A7A49B;line-height:1.35}
+.dials{border-top:1px dashed #1F3A3C;padding-top:14px}
 .dial svg{flex:none}
 .strip{display:grid;grid-template-columns:repeat(13,1fr);gap:4px;align-items:end;height:150px}
 .strip div{background:var(--line2);min-height:3px}
@@ -135,7 +146,11 @@ ul{margin:0;padding-left:18px}
 .kv b{font-weight:500;color:var(--muted)}
 button.x{font:inherit;background:none;border:0;color:var(--red);cursor:pointer;padding:0 4px}
 @media (max-width:900px){
-  .c5,.c7,.c4,.c3{grid-column:span 12}
+  .c5,.c7,.c8,.c4,.c3{grid-column:span 12}
+  .col{display:contents}
+  #verdict,#reality{grid-column:span 12}
+  #verdict{order:1}#forecast{order:2}#reality{order:3}#logpanel{order:4}#sessionlog{order:5}.grid>section:not(#forecast):not(#logpanel):not(#sessionlog){order:6}
+  .drawer{padding:12px}
   .dials{grid-template-columns:repeat(2,minmax(0,1fr))}
   .title{font-size:26px}
   .top{align-items:flex-start}
@@ -157,7 +172,10 @@ button.x{font:inherit;background:none;border:0;color:var(--red);cursor:pointer;p
   .key span{font-size:11px;padding:5px 8px}
   .key i{width:11px;height:11px}
   .status{font-size:11px;gap:6px 16px}
-  .days{height:120px}
+  .days{height:210px}
+  .dial{flex-direction:column;align-items:flex-start;gap:6px}
+  .dial svg{width:60px;height:60px}
+  .selarrow{width:18px;height:12px}
   .top>div:last-child{align-items:flex-start;width:100%}
   .spots{flex-wrap:nowrap;overflow-x:auto;padding-bottom:4px;width:100%;-webkit-overflow-scrolling:touch}
   .spot{white-space:nowrap}
@@ -178,7 +196,8 @@ button.x{font:inherit;background:none;border:0;color:var(--red);cursor:pointer;p
 </header>
 
 <div class="grid">
-  <section class="pnl c5" id="verdict"><i class="c1"></i><i class="c2"></i>
+  <div class="col c4">
+  <section class="pnl" id="verdict"><i class="c1"></i><i class="c2"></i>
     <div class="row"><span class="lbl">Best window · next 10 days</span></div>
     <div class="spotname" id="v-spot">…</div>
     <div style="display:flex;gap:20px;align-items:center;flex-wrap:wrap">
@@ -207,13 +226,7 @@ button.x{font:inherit;background:none;border:0;color:var(--red);cursor:pointer;p
     <div class="note dash" id="v-detail" style="margin-top:6px"></div>
   </section>
 
-  <section class="pnl c7"><i class="c1"></i><i class="c2"></i>
-    <div class="row" style="align-items:center"><span class="lbl">Ten days · best daylight hour</span><div class="key" aria-label="Score key"><span style="color:var(--green)"><i style="background:var(--green)"></i>Go <b>7+</b></span><span style="color:var(--gold)"><i style="background:var(--gold)"></i>Maybe <b>4 to 7</b></span><span style="color:var(--red)"><i style="background:var(--red)"></i>Skip <b>under 4</b></span></div></div>
-    <div class="days" id="days"></div>
-    <div class="dials dash" id="dials"></div>
-  </section>
-
-  <section class="pnl c4" id="reality"><i class="c1"></i><i class="c2"></i>
+  <section class="pnl" id="reality"><i class="c1"></i><i class="c2"></i>
     <div class="rosewrap" style="display:flex;gap:14px;align-items:center">
       <svg width="150" height="150" viewBox="0 0 118 118" id="rose" aria-label="Buoy swell direction">
         <circle cx="59" cy="59" r="52" fill="none" stroke="#2A2A30"></circle>
@@ -234,13 +247,19 @@ button.x{font:inherit;background:none;border:0;color:var(--red);cursor:pointer;p
     <div class="wgauge dash" id="wgauge"></div>
     <details><summary>The numbers behind that</summary><div class="kv" id="buoy-kv" style="margin-top:8px"></div><p class="small" id="buoy-head" style="margin:8px 0 0"></p></details>
   </section>
+  </div>
 
-  <section class="pnl c5" id="detail"><i class="c1"></i><i class="c2"></i>
-    <div class="row"><span class="lbl" id="d-title">Hour by hour</span><span class="lbl" id="d-sun">6 to 18 h</span></div>
+  <section class="pnl c8" id="forecast"><i class="c1"></i><i class="c2"></i>
+    <div class="row" style="align-items:center"><span class="lbl">Forecast · ten days · <span style="color:var(--teal)">click a day to open its hours</span></span><div class="key" aria-label="Score key"><span style="color:var(--green)"><i style="background:var(--green)"></i>Go <b>7+</b></span><span style="color:var(--gold)"><i style="background:var(--gold)"></i>Maybe <b>4 to 7</b></span><span style="color:var(--red)"><i style="background:var(--red)"></i>Skip <b>under 4</b></span></div></div>
+    <div class="days" id="days"></div>
+    <div class="stem" id="stem" aria-hidden="true"></div>
+    <div class="drawer" id="detail">
+    <div class="row"><span class="dtitle" id="d-title">Hour by hour</span><span class="lbl" id="d-sun">6 to 18 h</span></div>
     <div class="strip" id="strip"></div>
     <div class="hours" id="hours"></div>
     <div class="why" id="d-why"></div>
     <div class="small" id="tides"></div>
+    <div class="dials dash" id="dials"></div>
     <details id="hourdetails"><summary>Hour by hour numbers</summary>
       <div style="display:flex;gap:10px;flex-wrap:wrap;margin:10px 0"><button class="btn sec" id="tog-detail">Show the four estimates</button><button class="btn sec" id="tog-night">Show night hours</button></div>
       <div class="tbl"><table id="htab"><thead><tr>
@@ -249,9 +268,10 @@ button.x{font:inherit;background:none;border:0;color:var(--red);cursor:pointer;p
       </tr></thead><tbody></tbody></table></div>
       <p class="small det">Heights in feet unless switched to metres, periods in seconds, directions are where the swell comes from. Green tags mark components inside this spot's direction window.</p>
     </details>
+    </div>
   </section>
 
-  <section class="pnl c3" id="logpanel"><i class="c1"></i><i class="c2"></i>
+  <section class="pnl c4" id="logpanel"><i class="c1"></i><i class="c2"></i>
     <div class="row"><span class="lbl">Log a session</span><span class="lbl" id="lg-count"></span></div>
     <div class="form">
       <div class="frow"><label for="lg-spot">spot</label><select id="lg-spot" style="width:60%"></select></div>
@@ -266,6 +286,14 @@ button.x{font:inherit;background:none;border:0;color:var(--red);cursor:pointer;p
     <div class="small" id="lg-msg"></div>
   </section>
 
+  <section class="pnl c8" id="sessionlog"><i class="c1"></i><i class="c2"></i>
+    <div class="row"><span class="lbl">Session log</span><button class="btn sec" id="lg-csv" style="min-height:32px;padding:6px 10px;font-size:11px">Download CSV</button></div>
+    <div class="small" id="lg-insight"></div>
+    <details><summary>All logged sessions</summary>
+      <div class="tbl" style="margin-top:8px"><table id="lg-table"><thead><tr><th>When</th><th>Spot</th><th>Who</th><th class="n">Face ft</th><th class="n">Quality</th><th>Wind felt</th><th class="n">Score</th><th class="n">A</th><th class="n">B</th><th class="n">C</th><th>Offshore swell</th><th>Nearshore swell</th><th>Wind fc</th><th>Tide</th><th>Note</th><th></th></tr></thead><tbody></tbody></table></div>
+    </details>
+  </section>
+
   <section class="srcrow c12" aria-label="Data sources">
     <span class="lbl">Sources</span>
     <div class="status" id="status">
@@ -273,13 +301,6 @@ button.x{font:inherit;background:none;border:0;color:var(--red);cursor:pointer;p
     </div>
   </section>
 
-  <section class="pnl c12"><i class="c1"></i><i class="c2"></i>
-    <div class="row"><span class="lbl">Session log</span><button class="btn sec" id="lg-csv" style="min-height:32px;padding:6px 10px;font-size:11px">Download CSV</button></div>
-    <div class="small" id="lg-insight"></div>
-    <details><summary>All logged sessions</summary>
-      <div class="tbl" style="margin-top:8px"><table id="lg-table"><thead><tr><th>When</th><th>Spot</th><th>Who</th><th class="n">Face ft</th><th class="n">Quality</th><th>Wind felt</th><th class="n">Score</th><th class="n">A</th><th class="n">B</th><th class="n">C</th><th>Offshore swell</th><th>Nearshore swell</th><th>Wind fc</th><th>Tide</th><th>Note</th><th></th></tr></thead><tbody></tbody></table></div>
-    </details>
-  </section>
 
   <section class="pnl c12"><i class="c1"></i><i class="c2"></i>
     <details><summary>This spot, the forecaster's words, and links</summary>
@@ -402,7 +423,7 @@ function renderSpotButtons(){
   $('links').innerHTML=L.map(([u,t])=>`<li><a href="${u}" target="_blank" rel="noopener">${t}</a></li>`).join('');
 }
 async function selectSpot(k){
-  spotKey=k;try{localStorage.setItem('ssw-spot',k);}catch(e){}
+  spotKey=k;selDay=null;try{localStorage.setItem('ssw-spot',k);}catch(e){}
   loadParams();fillTune();renderSpotButtons();
   $('v-spot').textContent=SPOTS[k].name.toUpperCase();setLoading(6);
   await loadSpotData();doneLoading();compute();
@@ -643,8 +664,8 @@ function compute(){
     let nwsNow=null;if(data.nwsPeriods){const p=data.nwsPeriods.find(p=>nowT>=p.start&&nowT<p.end);if(p)nwsNow=energyOf(p.comps);}
     realityCheck={buoy:bIn,buoyE:buoyNow.E,modelE:modelNow.E,nwsE:nwsNow?nwsNow.E:null,bOut:S.buoyOut?data.buoy[S.buoyOut]||null:null};
   }
+  if(!selDay||!hours.some(h=>h.day===selDay)){const bo=bestOverall();selDay=bo?bo.day:hours[0].day;}
   renderDays();
-  if(!selDay||!hours.some(h=>h.day===selDay))selDay=hours[0].day;
   renderDetail();renderVerdict();renderReality();renderLog();
 }
 function col(s){return s>=7?'var(--good)':s>=4?'var(--ok)':'var(--bad)';}
@@ -682,47 +703,52 @@ function syncPulses(){ // start every pulse at the same point in its cycle so th
   const off=-(performance.now()%2600)+'ms';
   document.querySelectorAll('.conf.lo,.pulse,.hot').forEach(e=>{e.style.animationDelay=off;});
 }
+let lastDaysH=0,lastStripH=0;
 function renderDays(){
   const days=[...new Set(hours.map(h=>h.day))].slice(0,10);
   const el=$('days');el.innerHTML='';
-  const H=el.clientHeight||230;const barMax=H-70; // room above the bars for score and date
+  const H=el.clientHeight||230;lastDaysH=H;const barMax=H-(window.matchMedia('(max-width:480px)').matches?58:92); // room above the bars for arrow, score and date
   const top=bestOverall();const topDay=top?top.day:null;
   days.forEach(d=>{
     const best=bestOfDay(d);const dt=new Date(d+'T12:00');const isTop=d===topDay;
     const b=document.createElement('button');b.type='button';b.className='day'+(d===selDay?' sel':'');b.setAttribute('aria-label',`${fmtDay(d)}, score ${best.score.toFixed(1)}`);
-    b.innerHTML=`<div class="sc${isTop?' hot':''}" style="color:${cssCol(best.score)}">${best.score.toFixed(1)}</div><div class="dn">${fmtDayShort(d)}<small>${dt.toLocaleDateString('en-US',{month:'short',day:'numeric'})}</small></div><div class="barwrap"><div class="bar${isTop?' pulse':''}" style="height:${Math.max(3,best.score/10*barMax).toFixed(0)}px;background:${cssCol(best.score)};--glow:${glowOf(best.score)}"></div></div>`;
+    b.innerHTML=`${d===selDay?'<svg class="selarrow" viewBox="0 0 24 16" aria-hidden="true"><polygon points="0,0 24,0 12,16" fill="#2EC4B6"></polygon></svg>':''}<div class="sc${isTop?' hot':''}" style="color:${cssCol(best.score)}">${best.score.toFixed(1)}</div><div class="dn">${fmtDayShort(d)}<small>${dt.toLocaleDateString('en-US',{month:'short',day:'numeric'})}</small></div><div class="barwrap"><div class="bar${isTop?' pulse':''}" style="height:${Math.max(3,best.score/10*barMax).toFixed(0)}px;background:${cssCol(best.score)};--glow:${glowOf(best.score)}"></div></div>`;
     b.addEventListener('click',()=>{selDay=d;renderDays();renderDetail();});
     el.appendChild(b);
   });
+  $('stem').innerHTML=days.map(d=>`<div>${d===selDay?'<i></i>':''}</div>`).join('');
   renderDials();syncPulses();
 }
 function arcDash(frac,r){const c=2*Math.PI*r;return `${Math.max(0,Math.min(1,frac))*c} ${c}`;}
 function renderDials(){
-  const best=bestOverall();const el=$('dials');if(!best){el.innerHTML='';return;}
-  const S=SPOTS[spotKey];
+  const el=$('dials');if(!hours.length){el.innerHTML='';return;}
+  const best=selDay?bestOfDay(selDay):bestOverall();if(!best){el.innerHTML='';return;}
+  const S=SPOTS[spotKey];const at=`at ${new Date(best.t).getHours()} h`;const W=68;
+  const lab=(name,main,sub,subCol)=>`<div style="min-width:0"><div class="lbl">${name} ${at}</div><div class="t"><b>${main}</b></div><div class="t2"${subCol?` style="color:${subCol}"`:''}>${sub}</div></div>`;
   const eA=energyScore(best.A.E,P.eMin,P.eGood,P.eGreat);const eB=best.B?energyScore(best.B.E,P.lMin,P.lGood,P.lGreat):null;const en=eB==null?eA:(eA+eB)/2;
   const top=best.A.parts[0];
-  const swell=`<div class="dial"><svg width="54" height="54" viewBox="0 0 56 56" aria-label="Swell energy ${en.toFixed(1)} of 10"><circle cx="28" cy="28" r="22" fill="none" stroke="#1E1E24" stroke-width="6"></circle><circle cx="28" cy="28" r="22" fill="none" stroke="#2EC4B6" stroke-width="6" stroke-dasharray="${arcDash(en/10,22)}" transform="rotate(-90 28 28)"></circle><text x="28" y="32" text-anchor="middle" font-size="11" fill="#F2EFE6">${en.toFixed(1)}</text></svg><div><div class="lbl">Swell</div><div class="t">${top?`${fmtH(top.H)} @ ${top.T.toFixed(0)} s ${compass(top.D)}<br>at ${PTS[S.ref].name.replace('the ','')}`:'none aligned'}</div></div></div>`;
+  const swell=`<div class="dial"><svg width="${W}" height="${W}" viewBox="0 0 56 56" aria-label="Swell energy ${en.toFixed(1)} of 10"><circle cx="28" cy="28" r="22" fill="none" stroke="#1E1E24" stroke-width="6"></circle><circle cx="28" cy="28" r="22" fill="none" stroke="#2EC4B6" stroke-width="6" stroke-dasharray="${arcDash(en/10,22)}" transform="rotate(-90 28 28)"></circle><text x="28" y="32" text-anchor="middle" font-size="11" fill="#F2EFE6">${en.toFixed(1)}</text></svg>${lab('Swell',top?`${fmtH(top.H)} @ ${top.T.toFixed(0)} s`:'none aligned',top?`${compass(top.D)} ${Math.round(top.D)}° · forecast`:'forecast')}</div>`;
   // wind: rotate so that the middle of the offshore arc points toward the sea (up)
   const offC=(P.offLo+P.offHi)/2;const rot=best.wdir==null?0:((best.wdir-offC)+180)%360; // arrow shows where wind blows TO
   const wcol=best.wkind==='offshore'||best.wkind==='calm'?'#3DDC84':best.wkind==='cross'?'#E6B93D':'#FF5C4D';
-  const wind=`<div class="dial"><svg width="54" height="54" viewBox="0 0 56 56" aria-label="Wind ${best.spd!=null?Math.round(best.spd)+' knots from '+compass(best.wdir):'unknown'}"><circle cx="28" cy="28" r="22" fill="none" stroke="#1E1E24" stroke-width="1.5"></circle><path d="M6 24 Q28 18 50 24" fill="none" stroke="#7A7A85" stroke-width="1.5"></path><text x="28" y="14" text-anchor="middle" font-size="6" fill="#7A7A85">SEA</text><text x="28" y="50" text-anchor="middle" font-size="6" fill="#7A7A85">LAND</text><g transform="rotate(${rot.toFixed(0)} 28 28)"><line x1="28" y1="42" x2="28" y2="20" stroke="${wcol}" stroke-width="2.5"></line><path d="M22 26 L28 19 L34 26" fill="none" stroke="${wcol}" stroke-width="2.5"></path></g></svg><div><div class="lbl">Wind</div><div class="t">${best.spd!=null?Math.round(best.spd)+' kn '+compass(best.wdir):'—'}<br><span style="color:${wcol}">${best.wkind}</span></div></div></div>`;
+  const wind=`<div class="dial"><svg width="${W}" height="${W}" viewBox="0 0 56 56" aria-label="Wind ${best.spd!=null?Math.round(best.spd)+' knots from '+compass(best.wdir):'unknown'}"><circle cx="28" cy="28" r="22" fill="none" stroke="#1E1E24" stroke-width="1.5"></circle><path d="M6 24 Q28 18 50 24" fill="none" stroke="#7A7A85" stroke-width="1.5"></path><text x="28" y="14" text-anchor="middle" font-size="6" fill="#7A7A85">SEA</text><text x="28" y="50" text-anchor="middle" font-size="6" fill="#7A7A85">LAND</text><g transform="rotate(${rot.toFixed(0)} 28 28)"><line x1="28" y1="42" x2="28" y2="20" stroke="${wcol}" stroke-width="2.5"></line><path d="M22 26 L28 19 L34 26" fill="none" stroke="${wcol}" stroke-width="2.5"></path></g></svg>${lab('Wind',best.spd!=null?Math.round(best.spd)+' kn '+compass(best.wdir):'—',best.wkind,wcol)}</div>`;
   // tide: dot on a curve; x from stage
   const tl=best.tf.label;let tx=21,ty=24;if(/rising, low/.test(tl)){tx=9;ty=36;}else if(/rising, mid/.test(tl)){tx=20;ty=22;}else if(/dead high/.test(tl)){tx=28;ty=16;}else if(/falling, high/.test(tl)){tx=36;ty=22;}else if(/falling, low/.test(tl)){tx=47;ty=36;}else if(/dead low/.test(tl)){tx=2;ty=40;}
   const nextT=data.tides?data.tides.find(p=>p.t>best.t):null;
-  const tide=`<div class="dial"><svg width="54" height="54" viewBox="0 0 56 56" aria-label="Tide ${tl}"><path d="M2 40 C 14 40, 14 16, 28 16 S 42 40, 54 40" fill="none" stroke="#7A7A85" stroke-width="1.5"></path><circle cx="${tx}" cy="${ty}" r="4" fill="${best.tf.f>=.9?'#3DDC84':best.tf.f>=.75?'#E6B93D':'#FF5C4D'}"></circle></svg><div><div class="lbl">Tide</div><div class="t">${tl}<br><span class="small">${nextT?(nextT.type==='H'?'high ':'low ')+nextT.t.slice(11,16):''}</span></div></div></div>`;
+  const tide=`<div class="dial"><svg width="${W}" height="${W}" viewBox="0 0 56 56" aria-label="Tide ${tl}"><path d="M2 40 C 14 40, 14 16, 28 16 S 42 40, 54 40" fill="none" stroke="#7A7A85" stroke-width="1.5"></path><circle cx="${tx}" cy="${ty}" r="4" fill="${best.tf.f>=.9?'#3DDC84':best.tf.f>=.75?'#E6B93D':'#FF5C4D'}"></circle></svg>${lab('Tide',tl,nextT?(nextT.type==='H'?'next high ':'next low ')+nextT.t.slice(11,16):'')}</div>`;
   const ests=[best.sA,best.sB,best.sC].filter(v=>v!=null);const spread=ests.length>1?Math.max(...ests)-Math.min(...ests):0;
   const bar=(x,v,c)=>v==null?`<rect x="${x}" y="42" width="7" height="4" fill="#4A4A55"></rect>`:`<rect x="${x}" y="${46-Math.max(2,v*3.8)}" width="7" height="${Math.max(2,v*3.8)}" fill="${c}"></rect>`;
-  const src=`<div class="dial"><svg width="54" height="54" viewBox="0 0 56 56" aria-label="Sources A ${fmtS(best.sA)} B ${fmtS(best.sB)} C ${fmtS(best.sC)} D ${fmtS(best.sD)}"><line x1="8" y1="46" x2="48" y2="46" stroke="#2A2A30"></line>${bar(9,best.sA,'#2EC4B6')}${bar(20,best.sB,'#3DDC84')}${bar(31,best.sC,'#FFA02E')}${bar(42,best.sD,'#F2EFE6')}<g font-size="7" fill="#7A7A85" text-anchor="middle"><text x="12" y="54">A</text><text x="23" y="54">B</text><text x="34" y="54">C</text><text x="45" y="54">D</text></g></svg><div><div class="lbl">Sources</div><div class="t">spread ${spread.toFixed(1)}<br><span style="color:${spread<=1.5?'#3DDC84':spread<=3?'#E6B93D':'#FF5C4D'}">${spread<=1.5?'agree':spread<=3?'close':'disagree'}</span></div></div></div>`;
+  const scol=spread<=1.5?'#3DDC84':spread<=3?'#E6B93D':'#FF5C4D';
+  const src=`<div class="dial"><svg width="${W}" height="${W}" viewBox="0 0 56 56" aria-label="Sources A ${fmtS(best.sA)} B ${fmtS(best.sB)} C ${fmtS(best.sC)} D ${fmtS(best.sD)}"><line x1="8" y1="46" x2="48" y2="46" stroke="#2A2A30"></line>${bar(9,best.sA,'#2EC4B6')}${bar(20,best.sB,'#3DDC84')}${bar(31,best.sC,'#FFA02E')}${bar(42,best.sD,'#F2EFE6')}<g font-size="7" fill="#7A7A85" text-anchor="middle"><text x="12" y="54">A</text><text x="23" y="54">B</text><text x="34" y="54">C</text><text x="45" y="54">D</text></g></svg>${lab('Sources','spread '+spread.toFixed(1),spread<=1.5?'agree':spread<=3?'close':'disagree',scol)}</div>`;
   el.innerHTML=swell+wind+tide+src;
 }
 function renderDetail(){
   const all=hours.filter(h=>h.day===selDay);const dh=all.filter(h=>showNight||h.daylight);
   $('d-title').textContent=`${fmtDay(selDay)} · hour by hour`;
   const dl=all.filter(h=>h.daylight);$('d-sun').textContent=dl.length?`sun ${new Date(dl[0].t).getHours()} to ${new Date(dl[dl.length-1].t).getHours()+1} h`:'6 to 18 h';
-  const strip=$('strip'),hrs=$('hours');strip.innerHTML='';hrs.innerHTML='';
+  const strip=$('strip'),hrs=$('hours');strip.innerHTML='';hrs.innerHTML='';const SH=strip.clientHeight||150;lastStripH=SH;
   const win=windowOf(all);const inWin=h=>win&&h.t>=win.from&&h.t<=win.to;
-  all.filter(h=>{const hr=new Date(h.t).getHours();return hr>=6&&hr<=18;}).forEach(h=>{const d=document.createElement('div');d.style.height=Math.max(3,h.score*15)+'px';if(h.daylight)d.style.background=cssCol(h.score);else d.className='night';if(inWin(h)){d.classList.add('pulse');d.style.setProperty('--glow',glowOf(h.score));}d.title=`${fmtHr(h.t)} score ${h.score}`;strip.appendChild(d);const s=document.createElement('span');s.textContent=new Date(h.t).getHours();if(inWin(h))s.className='hot';hrs.appendChild(s);});
+  all.filter(h=>{const hr=new Date(h.t).getHours();return hr>=6&&hr<=18;}).forEach(h=>{const d=document.createElement('div');d.style.height=Math.max(3,h.score/10*SH).toFixed(0)+'px';if(h.daylight)d.style.background=cssCol(h.score);else d.className='night';if(inWin(h)){d.classList.add('pulse');d.style.setProperty('--glow',glowOf(h.score));}d.title=`${fmtHr(h.t)} score ${h.score}`;strip.appendChild(d);const s=document.createElement('span');s.textContent=new Date(h.t).getHours();if(inWin(h))s.className='hot';hrs.appendChild(s);});
   const bd=dl.length?dl.reduce((a,b)=>b.score>a.score?b:a):null;
   $('d-why').innerHTML=bd?whyText(bd).split(', ').map(w=>`<span><span style="color:${cssCol(bd.score)}">■</span> ${w}</span>`).join(''):'';
   const tb=$('htab').querySelector('tbody');tb.innerHTML='';
@@ -906,6 +932,10 @@ async function boot(){
   doneLoading();
   if(data.swell&&data.wind)compute();
   else{$('v-verb').textContent='NO DATA';$('v-when').textContent='Forecast could not load';$('v-detail').textContent='A data source did not answer. Reload.';}
+}
+if(window.ResizeObserver){ // re-scale the bars whenever a chart changes size
+  new ResizeObserver(()=>{if(hours.length&&Math.abs($('days').clientHeight-lastDaysH)>2)renderDays();}).observe($('days'));
+  new ResizeObserver(()=>{if(hours.length&&selDay&&Math.abs($('strip').clientHeight-lastStripH)>2)renderDetail();}).observe($('strip'));
 }
 boot();
 })();
