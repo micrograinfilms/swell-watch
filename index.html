@@ -47,22 +47,26 @@ h1,h2{margin:0;font-weight:400}
 .status span.on{color:var(--green)}.status span.on::before{color:var(--green)}
 .status span.err{color:var(--red)}.status span.err::before{color:var(--red)}
 .grid{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:18px}
+.rosewrap>div{min-width:0;flex:1}
 .c5{grid-column:span 5}.c7{grid-column:span 7}.c4{grid-column:span 4}.c3{grid-column:span 3}.c12{grid-column:span 12}
 .row{display:flex;justify-content:space-between;gap:10px;align-items:baseline;flex-wrap:wrap}
 .verb{font-family:var(--pix);font-size:26px;line-height:1;margin-top:2px}
 .when{font-size:19px;font-weight:700;color:var(--bright);overflow-wrap:anywhere}
 .big{font-family:var(--pix);font-size:40px;line-height:1;color:var(--teal)}
 .guess{font-size:9px;padding:2px 5px;border:1px dashed var(--dim);color:var(--muted);letter-spacing:.1em;vertical-align:middle;margin-left:6px}
+@keyframes spin{to{transform:rotate(270deg)}}
+#gauge.loading #g-arc{stroke:var(--amber);stroke-dasharray:70 390;transform-origin:75px 75px;animation:spin 1s linear infinite}
+@media (prefers-reduced-motion:reduce){#gauge.loading #g-arc{animation:none}}
 .spotname{font-family:var(--pix);font-size:22px;line-height:1;color:var(--teal);letter-spacing:.02em}
 .conf{display:inline-block;align-self:flex-start;font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;padding:6px 10px;color:var(--bg);background:var(--dim);margin-top:4px}
 .conf.hi{background:var(--green)}.conf.md{background:var(--gold)}.conf.lo{background:var(--red)}
 .note{font-size:12px;line-height:1.55;color:#A7A49B}
 .dash{border-top:1px dashed var(--line);padding-top:12px}
-.days{display:flex;gap:6px;align-items:flex-end;height:230px;border-bottom:1px solid var(--line);position:relative}
+.days{display:flex;gap:6px;align-items:flex-end;height:250px;border-bottom:1px solid var(--line);position:relative}
 .days .gl{position:absolute;left:0;right:0;border-top:1px dashed var(--line2);pointer-events:none}
 .days .gl b{position:absolute;left:0;top:-14px;font-size:9px;color:var(--muted);font-weight:400}
 .day{flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:stretch;gap:0;background:none;border:0;padding:0;cursor:pointer;height:100%;color:var(--ink);font:inherit;min-width:0}
-.day .sc{font-family:var(--pix);font-size:18px;line-height:1;text-align:center;margin-bottom:3px}
+.day .sc{font-family:var(--pix);font-size:26px;font-weight:700;line-height:1;text-align:center;margin-bottom:4px}
 .day .dn{font-size:10px;line-height:1.2;text-align:center;color:#A7A49B;margin-bottom:6px;white-space:nowrap}
 .day .dn small{display:block;font-size:9px;color:var(--muted)}
 .day.sel .dn{color:var(--bright)}
@@ -75,10 +79,10 @@ h1,h2{margin:0;font-weight:400}
 .dial{display:flex;gap:10px;align-items:center;min-width:0}
 .dial .t{font-size:11px;color:var(--ink);line-height:1.35}
 .dial svg{flex:none}
-.strip{display:grid;grid-template-columns:repeat(24,1fr);gap:2px;align-items:end;height:72px}
+.strip{display:grid;grid-template-columns:repeat(13,1fr);gap:4px;align-items:end;height:150px}
 .strip div{background:var(--line2);min-height:3px}
 .strip div.night{opacity:.35}
-.hours{font-size:9px;color:var(--muted);display:grid;grid-template-columns:repeat(24,1fr);gap:2px}
+.hours{font-size:12px;color:#A7A49B;display:grid;grid-template-columns:repeat(13,1fr);gap:4px}
 .hours span{text-align:center}
 .why{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:10px;letter-spacing:.06em;color:#A7A49B}
 .form{display:grid;gap:8px}
@@ -124,6 +128,10 @@ button.x{font:inherit;background:none;border:0;color:var(--red);cursor:pointer;p
   .pnl{padding:14px}
   .big{font-size:30px}.verb{font-size:20px}.when{font-size:15px}
   #gauge{width:110px;height:110px}
+  #rose{width:110px;height:110px}
+  .rosewrap{flex-wrap:wrap}
+  .strip{height:110px}
+  .hours{font-size:10px}
   .days{height:190px}
   .day .sc{font-size:13px}
   .day .dn{font-size:9px}
@@ -157,7 +165,7 @@ button.x{font:inherit;background:none;border:0;color:var(--red);cursor:pointer;p
     <div class="row"><span class="lbl">Best window · next 10 days</span></div>
     <div class="spotname" id="v-spot">…</div>
     <div style="display:flex;gap:20px;align-items:center;flex-wrap:wrap">
-      <svg width="150" height="150" viewBox="0 0 150 150" id="gauge" aria-label="Score gauge">
+      <svg width="150" height="150" viewBox="0 0 150 150" id="gauge" class="loading" aria-label="Score gauge">
         <circle cx="75" cy="75" r="62" fill="none" stroke="#1E1E24" stroke-width="12"></circle>
         <circle id="g-arc" cx="75" cy="75" r="62" fill="none" stroke="#4A4A55" stroke-width="12" stroke-dasharray="0 390" transform="rotate(-90 75 75)"></circle>
         <text id="g-num" x="75" y="70" text-anchor="middle" font-family="Silkscreen, monospace" font-size="38" fill="#7A7A85">…</text>
@@ -189,8 +197,8 @@ button.x{font:inherit;background:none;border:0;color:var(--red);cursor:pointer;p
   </section>
 
   <section class="pnl c4" id="reality"><i class="c1"></i><i class="c2"></i>
-    <div style="display:flex;gap:14px;align-items:center">
-      <svg width="96" height="96" viewBox="0 0 118 118" id="rose" aria-label="Buoy swell direction">
+    <div class="rosewrap" style="display:flex;gap:14px;align-items:center">
+      <svg width="150" height="150" viewBox="0 0 118 118" id="rose" aria-label="Buoy swell direction">
         <circle cx="59" cy="59" r="52" fill="none" stroke="#2A2A30"></circle>
         <circle cx="59" cy="59" r="34" fill="none" stroke="#1E1E24" stroke-dasharray="2 3"></circle>
         <path id="rose-win" d="" fill="none" stroke="#3DDC84" stroke-width="3" opacity=".5"></path>
@@ -200,17 +208,17 @@ button.x{font:inherit;background:none;border:0;color:var(--red);cursor:pointer;p
       </svg>
       <div style="display:flex;flex-direction:column;gap:4px;min-width:0">
         <div class="lbl" id="b-lbl">Measured now</div>
-        <div style="font-size:20px;font-weight:700;color:var(--bright)" id="b-main">…</div>
-        <div class="small" id="b-kind"></div>
-        <div class="small" id="b-agree"></div>
-        <div class="small" id="b-out"></div>
+        <div class="when" id="b-main">…</div>
+        <div class="note" id="b-kind"></div>
+        <div style="font-size:13px;font-weight:700" id="b-agree"></div>
+        <div class="note" id="b-out"></div>
       </div>
     </div>
     <details><summary>The numbers behind that</summary><div class="kv" id="buoy-kv" style="margin-top:8px"></div><p class="small" id="buoy-head" style="margin:8px 0 0"></p></details>
   </section>
 
   <section class="pnl c5" id="detail"><i class="c1"></i><i class="c2"></i>
-    <div class="row"><span class="lbl" id="d-title">Hour by hour</span><span class="lbl" id="d-sun"></span></div>
+    <div class="row"><span class="lbl" id="d-title">Hour by hour</span><span class="lbl" id="d-sun">6 to 18 h</span></div>
     <div class="strip" id="strip"></div>
     <div class="hours" id="hours"></div>
     <div class="why" id="d-why"></div>
@@ -371,7 +379,7 @@ function renderSpotButtons(){
 async function selectSpot(k){
   spotKey=k;try{localStorage.setItem('ssw-spot',k);}catch(e){}
   loadParams();fillTune();renderSpotButtons();
-  $('v-verb').textContent='LOADING';$('v-when').textContent='…';$('v-spot').textContent=SPOTS[k].name.toUpperCase();
+  $('v-verb').textContent='LOADING';$('v-when').textContent='…';$('v-spot').textContent=SPOTS[k].name.toUpperCase();$('gauge').classList.add('loading');$('g-num').textContent='';$('g-verb').textContent='';
   await loadSpotData();compute();
 }
 
@@ -618,7 +626,7 @@ function bestOverall(){const dl=hours.filter(h=>h.daylight);return dl.length?dl.
 function renderDays(){
   const days=[...new Set(hours.map(h=>h.day))].slice(0,10);
   const el=$('days');el.innerHTML='';
-  const H=el.clientHeight||230;const barMax=H-58; // room above the bars for score and date
+  const H=el.clientHeight||230;const barMax=H-70; // room above the bars for score and date
   days.forEach(d=>{
     const best=bestOfDay(d);const dt=new Date(d+'T12:00');
     const b=document.createElement('button');b.type='button';b.className='day'+(d===selDay?' sel':'');b.setAttribute('aria-label',`${fmtDay(d)}, score ${best.score.toFixed(1)}`);
@@ -651,9 +659,9 @@ function renderDials(){
 function renderDetail(){
   const all=hours.filter(h=>h.day===selDay);const dh=all.filter(h=>showNight||h.daylight);
   $('d-title').textContent=`${fmtDay(selDay)} · hour by hour`;
-  const dl=all.filter(h=>h.daylight);$('d-sun').textContent=dl.length?`daylight ${fmtHr(dl[0].t)} to ${fmtHr(dl[dl.length-1].t)}`:'';
+  const dl=all.filter(h=>h.daylight);$('d-sun').textContent=dl.length?`sun ${new Date(dl[0].t).getHours()} to ${new Date(dl[dl.length-1].t).getHours()+1} h`:'6 to 18 h';
   const strip=$('strip'),hrs=$('hours');strip.innerHTML='';hrs.innerHTML='';
-  all.forEach(h=>{const d=document.createElement('div');d.style.height=Math.max(3,h.score*7.2)+'px';if(h.daylight)d.style.background=cssCol(h.score);else d.className='night';d.title=`${fmtHr(h.t)} score ${h.score}`;strip.appendChild(d);const s=document.createElement('span');const hr=new Date(h.t).getHours();s.textContent=hr%3===0?hr:'';hrs.appendChild(s);});
+  all.filter(h=>{const hr=new Date(h.t).getHours();return hr>=6&&hr<=18;}).forEach(h=>{const d=document.createElement('div');d.style.height=Math.max(3,h.score*15)+'px';if(h.daylight)d.style.background=cssCol(h.score);else d.className='night';d.title=`${fmtHr(h.t)} score ${h.score}`;strip.appendChild(d);const s=document.createElement('span');s.textContent=new Date(h.t).getHours();hrs.appendChild(s);});
   const bd=dl.length?dl.reduce((a,b)=>b.score>a.score?b:a):null;
   $('d-why').innerHTML=bd?whyText(bd).split(', ').map(w=>`<span><span style="color:${cssCol(bd.score)}">■</span> ${w}</span>`).join(''):'';
   const tb=$('htab').querySelector('tbody');tb.innerHTML='';
@@ -688,6 +696,7 @@ function renderVerdict(){
   while(b<hours.length-1&&hours[b+1].daylight&&hours[b+1].score>=floor)b++;
   const verb=best.score>=7?'GO':best.score>=4?'MAYBE':'SKIP';
   const c=hexCol(best.score);
+  $('gauge').classList.remove('loading');$('g-arc').removeAttribute('style');
   $('g-arc').setAttribute('stroke-dasharray',arcDash(best.score/10,62));$('g-arc').setAttribute('stroke',c);
   $('g-num').textContent=best.score.toFixed(1);$('g-num').setAttribute('fill',c);$('g-verb').textContent=verb;
   $('gauge').setAttribute('aria-label',`Score ${best.score.toFixed(1)} of 10, ${verb}`);
@@ -790,7 +799,7 @@ async function boot(){
   $('tog-night').addEventListener('click',()=>{showNight=!showNight;$('tog-night').textContent=showNight?'Hide night hours':'Show night hours';renderDetail();});
   await Promise.all([loadSpotData(),syncLogFromSheet()]);
   if(data.swell&&data.wind)compute();
-  else{$('v-verb').textContent='NO DATA';$('v-when').textContent='Forecast could not load';$('v-detail').textContent='A data source did not answer. Reload.';}
+  else{$('gauge').classList.remove('loading');$('v-verb').textContent='NO DATA';$('v-when').textContent='Forecast could not load';$('v-detail').textContent='A data source did not answer. Reload.';}
 }
 boot();
 })();
