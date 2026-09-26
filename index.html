@@ -141,7 +141,8 @@ button.x{font:inherit;background:none;border:0;color:var(--bad);cursor:pointer;p
 </section>
 
 <section>
-  <div class="eyebrow" style="margin-bottom:8px">Daily outlook (best daylight hour each day, combined score 0 to 10, separate estimates underneath)</div>
+  <div class="eyebrow" style="margin-bottom:6px">Daily outlook (best daylight hour each day, combined score 0 to 10, separate estimates underneath)</div>
+  <div class="legend" style="margin-bottom:8px"><span><i style="background:var(--good)"></i>Green 7 to 10: go</span><span><i style="background:var(--ok)"></i>Yellow 4 to 7: maybe, read the why</span><span><i style="background:var(--bad)"></i>Orange under 4: skip</span></div>
   <div class="days" id="days"></div>
 </section>
 
@@ -223,7 +224,7 @@ button.x{font:inherit;background:none;border:0;color:var(--bad);cursor:pointer;p
 (function(){
 // ===== CONFIG =====
 // Paste the Google Apps Script web app URL here once the sheet is set up. Empty = log stays in this browser only.
-const SHEET_URL='';
+const SHEET_URL='https://script.google.com/macros/s/AKfycbyqhr9BNjhckbKBABRclaq30E1yunfRtRYRW5U5PtUbpAwYg04ufOZ6L3TzNEED9wUeZA/exec';
 const TZ='America/Los_Angeles';
 const PTS={
   entrance:{lat:48.49,lon:-124.73,name:'the Strait entrance'},

@@ -1,11 +1,10 @@
 // Swell Watch session log — Google Apps Script
-// 1. Create a Google Sheet. Rename the first tab "log".
-// 2. Extensions → Apps Script. Replace the contents with this file. Save.
-// 3. Deploy → New deployment → Type: Web app. Execute as: Me. Who has access: Anyone. Deploy.
-// 4. Copy the Web app URL into SHEET_URL at the top of index.html.
+// Standalone script bound by ID to the 'Swell Watch Log' spreadsheet in micrograinfilms@gmail.com.
+// Deployed as a web app (execute as me, access: anyone); its URL is SHEET_URL in index.html.
 const SHEET='log';
+const SPREADSHEET_ID='1GL0cUN_16_b0lilrAiCySzFJklFyU7JzlTkpmJCZdII';
 const COLS=['id','t','spot','who','face','q','wind','note','snap'];
-function sheet_(){const ss=SpreadsheetApp.getActiveSpreadsheet();let sh=ss.getSheetByName(SHEET);if(!sh){sh=ss.insertSheet(SHEET);}if(sh.getLastRow()===0)sh.appendRow(COLS);return sh;}
+function sheet_(){const ss=SpreadsheetApp.openById(SPREADSHEET_ID);let sh=ss.getSheetByName(SHEET);if(!sh){sh=ss.insertSheet(SHEET);}if(sh.getLastRow()===0)sh.appendRow(COLS);return sh;}
 function out_(o){return ContentService.createTextOutput(JSON.stringify(o)).setMimeType(ContentService.MimeType.JSON);}
 function doGet(e){
   const sh=sheet_();const vals=sh.getDataRange().getValues();const rows=[];
