@@ -50,6 +50,7 @@ h1,h2{margin:0;font-weight:400}
 .status span.err{color:var(--red)}.status span.err::before{background:var(--red)}
 .key{display:flex;gap:8px;flex-wrap:wrap}
 .key span{display:inline-flex;align-items:center;gap:8px;padding:6px 11px;border:1px solid var(--line);font-size:13px;font-weight:700;letter-spacing:.12em;text-transform:uppercase}
+.key .kl{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);border:0;padding:0 2px 0 0}
 .key i{width:14px;height:14px;display:inline-block;flex:none}
 .key b{font-weight:400;color:#A7A49B;letter-spacing:.04em}
 .grid{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:18px}
@@ -74,8 +75,8 @@ h1,h2{margin:0;font-weight:400}
 .conf.hi{background:var(--green)}.conf.md{background:var(--gold)}.conf.lo{background:var(--red);--glow:rgba(255,92,77,.75)}
 @keyframes pulse{0%,100%{filter:brightness(1);box-shadow:0 0 0 0 var(--glow,rgba(255,160,46,.7))}50%{filter:brightness(1.4);box-shadow:0 0 18px 3px var(--glow,rgba(255,160,46,.7))}}
 @keyframes pulsetext{0%,100%{text-shadow:0 0 0 rgba(255,160,46,0)}50%{text-shadow:0 0 12px rgba(255,160,46,.9),0 0 2px rgba(255,160,46,.9)}}
-.conf.lo,.pulse{animation:pulse 2.6s ease-in-out infinite}
-.hot{color:var(--bright)!important;font-weight:700;animation:pulsetext 2.6s ease-in-out infinite}
+.conf.lo,.pulse{animation:pulse 2.08s ease-in-out infinite}
+.hot{color:var(--bright)!important;font-weight:700;animation:pulsetext 2.08s ease-in-out infinite}
 tr.hotrow td{background:rgba(255,160,46,.06)}
 tr.hotrow td:first-child{box-shadow:inset 3px 0 0 var(--amber)}
 @media (prefers-reduced-motion:reduce){.conf.lo,.pulse,.hot{animation:none}.pulse{box-shadow:0 0 12px 2px var(--glow,rgba(255,160,46,.7))}}
@@ -89,6 +90,7 @@ tr.hotrow td:first-child{box-shadow:inset 3px 0 0 var(--amber)}
 .days .gl{position:absolute;left:0;right:0;border-top:1px dashed var(--line2);pointer-events:none}
 .days .gl b{position:absolute;left:0;top:-14px;font-size:9px;color:var(--muted);font-weight:400}
 .day{flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:stretch;gap:0;background:none;border:0;padding:0;cursor:pointer;height:100%;color:var(--ink);font:inherit;min-width:0}
+.day .fz{font-family:var(--mono);font-size:14px;font-weight:700;color:var(--teal);text-align:center;line-height:1;margin-bottom:5px;white-space:nowrap}
 .day .sc{font-family:var(--mono);font-size:24px;font-weight:700;line-height:1;text-align:center;margin-bottom:4px;font-variant-numeric:tabular-nums}
 .day .dn{font-size:10px;line-height:1.2;text-align:center;color:#A7A49B;margin-bottom:6px;white-space:nowrap}
 .day .dn small{display:block;font-size:9px;color:var(--muted)}
@@ -117,10 +119,13 @@ tr.hotrow td:first-child{box-shadow:inset 3px 0 0 var(--amber)}
 .board .bn.cur{color:var(--amber);font-weight:700}
 .board .bn .short{display:none}
 .board .bn:focus-visible{outline:2px solid var(--amber)}
-.board .bc{font:inherit;font-family:var(--mono);font-size:14px;font-weight:700;border:0;min-height:32px;cursor:pointer;padding:0;font-variant-numeric:tabular-nums;min-width:0}
+.board .bc{font:inherit;font-family:var(--mono);font-size:14px;font-weight:700;border:0;min-height:48px;cursor:pointer;padding:0;font-variant-numeric:tabular-nums;min-width:0;display:flex;flex-direction:column;background:none;color:inherit}
+.board .bs{flex:1;display:flex;align-items:center;justify-content:center;min-height:30px}
+.board .bf{font-size:11px;color:var(--teal);background:var(--panel2);padding:3px 0 2px;border:1px solid var(--line2);border-top:0;line-height:1.1;white-space:nowrap;overflow:hidden}
+.board .bn{min-height:48px}
 .board .bc.over{opacity:.35}
 .board .bc.sel{outline:2px solid var(--bright);outline-offset:2px}
-.board .bc.wait{display:flex;align-items:center;justify-content:center;background:var(--line2);color:var(--muted);cursor:default;font-weight:400}
+.board .bc.wait{display:flex;align-items:center;justify-content:center;flex-direction:row;background:var(--line2);color:var(--muted);cursor:default;font-weight:400}
 .board .bc:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
 .rc{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:18px 26px;align-items:start}
 .rcsec{display:flex;flex-direction:column;gap:8px;min-width:0}
@@ -208,6 +213,8 @@ button.x{font:inherit;background:none;border:0;color:var(--red);cursor:pointer;p
   .hours{font-size:10px}
   .days{height:190px}
   .day .sc{font-size:14px}
+  .day .fz{font-size:9px;margin-bottom:3px}
+  .day .fz .u{display:none}
   .day .dn{font-size:9px}
   .day .dn small{display:none}
   .spotname{font-size:18px}
@@ -216,8 +223,11 @@ button.x{font:inherit;background:none;border:0;color:var(--red);cursor:pointer;p
   .status{font-size:11px;gap:6px 16px}
   .days{height:210px}
   .board{grid-template-columns:62px repeat(10,minmax(0,1fr));gap:2px}
-  .board .bc{font-size:10px;min-height:28px}
-  .board .bn{font-size:10px;min-height:28px;padding-right:2px}
+  .board .bc{font-size:10px;min-height:40px}
+  .board .bs{min-height:24px}
+  .board .bf{font-size:8.5px;padding:2px 0 1px}
+  .board .bf .u{display:none}
+  .board .bn{font-size:10px;min-height:40px;padding-right:2px}
   .board .bh{font-size:9px;letter-spacing:0}
   .board .bh span{display:none}
   .board .bn .full{display:none}.board .bn .short{display:inline}
@@ -245,7 +255,7 @@ button.x{font:inherit;background:none;border:0;color:var(--red);cursor:pointer;p
 
 <div class="grid">
   <section class="pnl c12" id="board"><i class="c1"></i><i class="c2"></i>
-    <div class="row" style="align-items:center"><span class="lbl">All spots · ten days · <span style="color:var(--amber)">click a square to open that spot and day</span></span><span class="lbl" id="bd-status"></span></div>
+    <div class="row" style="align-items:center"><span class="lbl">All spots · ten days · <span style="color:var(--amber)">click a square to open that spot and day</span></span><span class="lbl"><span id="bd-status"></span> Score out of 10 · <span style="color:var(--teal)">aqua = wave face</span></span></div>
     <div class="board" id="bd"></div>
   </section>
 
@@ -315,7 +325,7 @@ button.x{font:inherit;background:none;border:0;color:var(--red);cursor:pointer;p
   </div>
 
   <section class="pnl c8" id="forecast"><i class="c1"></i><i class="c2"></i>
-    <div class="row" style="align-items:center"><span class="lbl">Forecast · ten days · <span style="color:var(--amber)">click a day to open its hours</span></span><div class="key" aria-label="Score key"><span style="color:var(--green)"><i style="background:var(--green)"></i>Go <b>7+</b></span><span style="color:var(--gold)"><i style="background:var(--gold)"></i>Maybe <b>4 to 7</b></span><span style="color:var(--red)"><i style="background:var(--red)"></i>Skip <b>under 4</b></span></div></div>
+    <div class="row" style="align-items:center"><span class="lbl">Forecast · ten days · <span style="color:var(--amber)">click a day to open its hours</span></span><div class="key" aria-label="Score key"><span class="kl">Score out of 10</span><span style="color:var(--green)"><i style="background:var(--green)"></i>Go <b>7+</b></span><span style="color:var(--gold)"><i style="background:var(--gold)"></i>Maybe <b>4 to 7</b></span><span style="color:var(--red)"><i style="background:var(--red)"></i>Skip <b>under 4</b></span><span style="color:var(--teal)"><i style="background:var(--teal)"></i>Wave face <b>ft</b></span></div></div>
     <div class="days" id="days"></div>
     <div class="stem" id="stem" aria-hidden="true"></div>
     <div class="drawer" id="detail">
@@ -692,13 +702,16 @@ async function deleteFromSheet(id){
   if(!SHEET_URL)return true;
   try{const r=await fetch(SHEET_URL,{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify({action:'delete',id})});const j=await r.json();return !!j.ok;}catch(e){return false;}
 }
-function faceRatio(){
-  const rows=LOG.filter(r=>r.spot===spotKey&&r.face>0&&r.snap&&r.snap.Hb>0.1);
-  if(rows.length<3)return {ratio:P.faceK,calibrated:false,n:rows.length};
+function faceRatio(k=spotKey){
+  const rows=LOG.filter(r=>r.spot===k&&r.face>0&&r.snap&&r.snap.Hb>0.1);
+  if(rows.length<3)return {ratio:k===spotKey?P.faceK:paramsFor(k).faceK,calibrated:false,n:rows.length};
   const rs=rows.map(r=>(r.face*0.3048)/r.snap.Hb).sort((a,b)=>a-b);
   return {ratio:rs[Math.floor(rs.length/2)],calibrated:true,n:rows.length};
 }
-function faceEstimate(h){const fr=faceRatio();const Hb=h.B&&h.B.parts.length?Math.max(...h.B.parts.map(p=>p.H)):null;if(Hb==null)return null;return {m:Hb*fr.ratio,calibrated:fr.calibrated,n:fr.n};}
+function faceEstimate(h,k=spotKey){const fr=faceRatio(k);const Hb=h.B&&h.B.parts.length?Math.max(...h.B.parts.map(p=>p.H)):null;if(Hb==null)return null;return {m:Hb*fr.ratio,calibrated:fr.calibrated,n:fr.n};}
+// wave face as a one-foot band (half a metre in metric), e.g. "2–3 ft"; the unit sits in its own span so phones can drop it
+function sizeBand(h,k=spotKey){const f=faceEstimate(h,k);if(!f)return '';const v=FT?f.m/0.3048:f.m;const st=FT?1:0.5;
+  if(v<st)return `&lt;${st}<span class="u"> ${FT?'ft':'m'}</span>`;const lo=Math.floor(v/st)*st;return `${lo}–${lo+st}<span class="u"> ${FT?'ft':'m'}</span>`;}
 function faceText(h){const f=faceEstimate(h);if(!f)return '';return `≈ ${fmtH(f.m,0)} face${f.calibrated?'':'<span class="guess">guess</span>'}`;}
 
 // ---- compute ----
@@ -809,19 +822,19 @@ function windowOf(list){ // contiguous daylight run around the best hour, same r
   return {from:list[a].t,to:list[b].t,best};
 }
 function syncPulses(){ // start every pulse at the same point in its cycle so they breathe together
-  const off=-(performance.now()%2600)+'ms';
+  const off=-(performance.now()%2080)+'ms';
   document.querySelectorAll('.conf.lo,.pulse,.hot').forEach(e=>{e.style.animationDelay=off;});
 }
 let lastDaysH=0,lastStripH=0;
 function renderDays(){
   const days=[...new Set(hours.map(h=>h.day))].filter(d=>d>=todayStr()).slice(0,10);
   const el=$('days');el.innerHTML='';
-  const H=el.clientHeight||230;lastDaysH=H;const barMax=H-(window.matchMedia('(max-width:480px)').matches?58:92); // room above the bars for arrow, score and date
+  const H=el.clientHeight||230;lastDaysH=H;const barMax=H-(window.matchMedia('(max-width:480px)').matches?72:112); // room above the bars for arrow, score and date
   const top=bestOverall();const topDay=top?top.day:null;
   days.forEach(d=>{
     const best=bestOfDay(d);const dt=new Date(d+'T12:00');const isTop=d===topDay;
     const b=document.createElement('button');b.type='button';b.className='day'+(d===selDay?' sel':'')+(dayOver(d)?' over':'');b.setAttribute('aria-label',`${fmtDay(d)}, score ${best.score.toFixed(1)}`);
-    b.innerHTML=`${d===selDay?'<svg class="selarrow" viewBox="0 0 24 16" aria-hidden="true"><polygon points="0,0 24,0 12,16"></polygon></svg>':''}<div class="sc${isTop?' hot':''}" style="color:${cssCol(best.score)}">${best.score.toFixed(1)}</div><div class="dn">${fmtDayShort(d)}<small>${dt.toLocaleDateString('en-US',{month:'short',day:'numeric'})}</small></div><div class="barwrap"><div class="bar${isTop?' pulse':''}" style="height:${Math.max(3,best.score/10*barMax).toFixed(0)}px;background:${cssCol(best.score)};--glow:${glowOf(best.score)}"></div></div>`;
+    b.innerHTML=`${d===selDay?'<svg class="selarrow" viewBox="0 0 24 16" aria-hidden="true"><polygon points="0,0 24,0 12,16"></polygon></svg>':''}<div class="fz">${sizeBand(best)||'&nbsp;'}</div><div class="sc${isTop?' hot':''}" style="color:${cssCol(best.score)}">${best.score.toFixed(1)}</div><div class="dn">${fmtDayShort(d)}<small>${dt.toLocaleDateString('en-US',{month:'short',day:'numeric'})}</small></div><div class="barwrap"><div class="bar${isTop?' pulse':''}" style="height:${Math.max(3,best.score/10*barMax).toFixed(0)}px;background:${cssCol(best.score)};--glow:${glowOf(best.score)}"></div></div>`;
     b.addEventListener('click',()=>{selDay=d;renderDays();renderDetail();renderBoard();});
     el.appendChild(b);
   });
@@ -848,7 +861,8 @@ function renderBoard(){
       if(!c){html+='<div class="bc wait" title="No forecast">—</div>';return;}
       const h=c.h;const bg=h.score>=7?'rgba(61,220,132,.9)':h.score>=4?'rgba(230,185,61,.88)':'rgba(255,92,77,.13)';
       const isTop=top&&top.k===k&&top.d===d;const sel=k===spotKey&&d===selDay;
-      html+=`<button type="button" class="bc${c.over?' over':''}${sel?' sel':''}${isTop?' pulse':''}" data-k="${k}" data-d="${d}" style="background:${bg};color:${h.score>=4?'#0B0B0D':'#FF5C4D'};--glow:${glowOf(h.score)}" aria-label="${S.name}, ${fmtDay(d)}, score ${h.score.toFixed(1)}" title="${S.name} · ${fmtDay(d)} · best around ${fmtHr(h.t)}">${h.score.toFixed(1)}</button>`;
+      const sz=sizeBand(h,k);const szTxt=sz.replace(/<[^>]+>/g,'').replace('&lt;','under ');
+      html+=`<button type="button" class="bc${c.over?' over':''}${sel?' sel':''}${isTop?' pulse':''}" data-k="${k}" data-d="${d}" style="--glow:${glowOf(h.score)}" aria-label="${S.name}, ${fmtDay(d)}, score ${h.score.toFixed(1)} out of 10${sz?', wave face '+szTxt:''}" title="${S.name} · ${fmtDay(d)} · best around ${fmtHr(h.t)}"><span class="bs" style="background:${bg};color:${h.score>=4?'#0B0B0D':'#FF5C4D'}">${h.score.toFixed(1)}</span><span class="bf">${sz||'—'}</span></button>`;
     });
   });
   el.innerHTML=html;
@@ -935,7 +949,7 @@ function renderVerdict(){
   const verb=best.score>=7?'GO':best.score>=4?'MAYBE':'SKIP';
   const c=hexCol(best.score);
   $('g-arc').setAttribute('stroke-dasharray',arcDash(best.score/10,62));$('g-arc').setAttribute('stroke',c);
-  $('g-num').textContent=best.score.toFixed(1);$('g-num').setAttribute('fill',c);$('g-verb').textContent=verb;
+  $('g-num').textContent=best.score.toFixed(1);$('g-num').setAttribute('fill',c);$('g-verb').textContent='OUT OF 10';$('g-verb').setAttribute('fill','#7A7A85');
   $('gauge').setAttribute('aria-label',`Score ${best.score.toFixed(1)} of 10, ${verb}`);
   $('v-verb').textContent=verb;$('v-verb').style.color=c;
   $('v-when').innerHTML=`${fmtDay(best.day)}<br>${fmtHr(hours[a].t)} to ${fmtHr(hours[b].t)}`;
