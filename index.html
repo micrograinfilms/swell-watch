@@ -153,12 +153,23 @@ tr.hotrow td:first-child{box-shadow:inset 3px 0 0 var(--amber)}
 .dials{border-top:1px dashed var(--line);padding-top:14px}
 .dial svg{flex:none}
 .strip{display:grid;grid-template-columns:repeat(13,1fr);gap:4px;align-items:end;height:150px;position:relative}
-.strip svg.enl{position:absolute;left:0;top:0;pointer-events:none;overflow:visible}
-.strip div{background:var(--line2);min-height:3px}
+.strip .hb{background:var(--line2);min-height:3px;cursor:default}
 .strip div.night{opacity:.35}
 .strip div.gone{opacity:.3}
 .hours span.gone{opacity:.45}
 .hours{font-size:12px;color:#A7A49B;display:grid;grid-template-columns:repeat(13,1fr);gap:4px}
+.drawer{--lc:64px}
+.rl{font-size:9px;letter-spacing:.12em;color:var(--muted);text-transform:uppercase;text-align:left;align-self:center;line-height:1.2;white-space:nowrap}
+.rl small{display:block;font-size:8px;letter-spacing:.06em;color:#55555E}
+.strip .rl{align-self:end}
+.hours .rl,.strip .rl{text-align:left}
+.hrows{display:flex;flex-direction:column;gap:4px;border-top:1px solid var(--line2);padding-top:8px}
+.hrow{display:grid;gap:4px;align-items:stretch;font-family:var(--mono);font-variant-numeric:tabular-nums}
+.hrow .c{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:30px;font-size:13px;font-weight:700;line-height:1.1;min-width:0;overflow:hidden}
+.hrow .c small{font-size:9px;font-weight:400;opacity:.85;letter-spacing:.04em}
+.hrow .c .gl{display:none}
+.hrow .c.gone{opacity:.4}
+.hrow .c.hot{outline:1px solid var(--line)}
 .hours span{text-align:center}
 .why{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:10px;letter-spacing:.06em;color:#A7A49B}
 .form{display:grid;gap:8px}
@@ -213,6 +224,13 @@ button.x{font:inherit;background:none;border:0;color:var(--red);cursor:pointer;p
   .rosewrap{flex-wrap:wrap}
   .strip{height:110px}
   .hours{font-size:10px}
+  .drawer{--lc:44px}
+  .hrow .c{font-size:10px;min-height:24px}
+  .hrow .c small{display:none}
+  .hrow .c .tx{display:none}
+  .hrow .c .gl{display:inline}
+  .rl{font-size:7.5px;letter-spacing:.06em}
+  .rl small{display:none}
   .days{height:190px}
   .day .sc{font-size:14px}
   .day .fz{font-size:9px;margin-bottom:3px}
@@ -330,6 +348,7 @@ button.x{font:inherit;background:none;border:0;color:var(--red);cursor:pointer;p
     <div class="row" style="align-items:center"><span style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;min-width:0"><span class="dtitle" id="d-title">Hour by hour</span><span class="conf sm" id="d-conf"></span></span><span class="lbl" id="d-sun">6 to 18 h</span></div>
     <div class="strip" id="strip"></div>
     <div class="hours" id="hours"></div>
+    <div class="hrows"><div class="hrow" id="r-energy"></div><div class="hrow" id="r-wind"></div><div class="hrow" id="r-tide"></div></div>
     <div class="why" id="d-why"></div>
     <div class="small" id="tides"></div>
     <div class="dials dash" id="dials"></div>
@@ -768,7 +787,7 @@ function coreCompute(){
     const day=t.slice(0,10);const s=sun[day];
     const daylight=s?(t>=s.rise.slice(0,13)+':00'&&t<=s.set.slice(0,13)+':59'):true;const past=t<nowT;
     const r1=v=>v==null?null:Math.round(v*10)/10;
-    return {t,day,daylight,past,A,B,C,D,sA:r1(sA),sB:r1(sB),sC:r1(sC),sD:r1(sD),score,spd,wdir,gust,wkind:wf.kind,tf};
+    return {t,day,daylight,past,A,B,C,D,sA:r1(sA),sB:r1(sB),sC:r1(sC),sD:r1(sD),score,spd,wdir,gust,wkind:wf.kind,wf:wf.f,tf};
   });
   let rc=null;
   if(bIn&&nowI>=0){
@@ -888,15 +907,6 @@ function energyOfHour(h){
   const parts=[[h.A?energyScore(h.A.E,P.eMin,P.eGood,P.eGreat):null,P.wA],[h.B?energyScore(h.B.E,P.lMin,P.lGood,P.lGreat):null,P.wB],[h.C?energyScore(h.C.E,P.eMin,P.eGood,P.eGreat):null,P.wC],[h.D?energyScore(h.D.E,P.eMin,P.eGood,P.eGreat):null,P.wD]].filter(([v,w])=>v!=null&&w>0);
   const ws=parts.reduce((a,[,w])=>a+w,0);return ws?parts.reduce((a,[v,w])=>a+v*w,0)/ws:0;
 }
-function drawEnergyLine(shown){
-  const strip=$('strip');const old=strip.querySelector('svg.enl');if(old)old.remove();
-  const bars=[...strip.children].filter(e=>e.tagName==='DIV');if(!bars.length)return;
-  const W=strip.clientWidth,H=strip.clientHeight;
-  const pts=bars.map((b,i)=>[b.offsetLeft+b.offsetWidth/2,H-Math.max(0,Math.min(10,energyOfHour(shown[i])))/10*H]);
-  const svg=document.createElementNS('http://www.w3.org/2000/svg','svg');svg.setAttribute('class','enl');svg.setAttribute('width',W);svg.setAttribute('height',H);svg.setAttribute('aria-hidden','true');
-  svg.innerHTML=`<polyline points="${pts.map(p=>p[0].toFixed(1)+','+p[1].toFixed(1)).join(' ')}" fill="none" stroke="#2EC4B6" stroke-width="2.5" stroke-linejoin="round"></polyline>`+pts.map((p,i)=>`<circle cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="4" fill="#2EC4B6" stroke="#0E0E12" stroke-width="2"${shown[i].past?' opacity=".45"':''}></circle>`).join('');
-  strip.appendChild(svg);lastStripW=W;
-}
 function arcDash(frac,r){const c=2*Math.PI*r;return `${Math.max(0,Math.min(1,frac))*c} ${c}`;}
 function renderDials(){
   const el=$('dials');if(!hours.length){el.innerHTML='';return;}
@@ -928,10 +938,26 @@ function renderDetail(){
   const strip=$('strip'),hrs=$('hours');strip.innerHTML='';hrs.innerHTML='';const SH=strip.clientHeight||150;lastStripH=SH;
   const win=windowOf(all);const inWin=h=>win&&h.t>=win.from&&h.t<=win.to;
   const shown=dl.length?dl:all.filter(h=>{const hr=new Date(h.t).getHours();return hr>=6&&hr<=18;});
-  strip.style.gridTemplateColumns=hrs.style.gridTemplateColumns=`repeat(${shown.length},minmax(0,1fr))`;
-  shown.forEach(h=>{const d=document.createElement('div');d.style.height=Math.max(3,h.score/10*SH).toFixed(0)+'px';if(h.daylight)d.style.background=cssCol(h.score);else d.className='night';if(h.past){d.classList.add('gone');d.title='already passed';}if(inWin(h)){d.classList.add('pulse');d.style.setProperty('--glow',glowOf(h.score));}d.removeAttribute('title');{const en=energyOfHour(h);const tip=()=>`<b>${fmtHr(h.t)}</b>${h.past?' · already passed':''}<br>score ${h.score.toFixed(1)} / 10<br><span style="color:var(--teal)">swell energy ${en.toFixed(1)} / 10</span><br>${faceText(h).replace(/<[^>]+>guess<\/span>/,' (guess)')||''}`;d.addEventListener('pointerenter',e=>tipShow(tip(),e));d.addEventListener('pointermove',e=>tipShow(tip(),e));d.addEventListener('pointerleave',tipHide);}strip.appendChild(d);const s=document.createElement('span');s.textContent=new Date(h.t).getHours();if(inWin(h))s.className='hot';else if(h.past)s.className='gone';hrs.appendChild(s);});
+  const cols=`var(--lc) repeat(${shown.length},minmax(0,1fr))`;const rE=$('r-energy'),rW=$('r-wind'),rT=$('r-tide');
+  [strip,hrs,rE,rW,rT].forEach(e=>{e.style.gridTemplateColumns=cols;});
+  strip.innerHTML='<span class="rl">Score<small>out of 10</small></span>';hrs.innerHTML='<span class="rl">Hour</span>';
+  rE.innerHTML='<span class="rl">Energy<small>0 to 10</small></span>';rW.innerHTML='<span class="rl">Wind<small>knots</small></span>';rT.innerHTML='<span class="rl">Tide</span>';
+  const WK={calm:['calm','var(--green)'],offshore:['off','var(--green)'],cross:['cross','var(--gold)'],onshore:['on','var(--red)'],unknown:['','#A7A49B']};
+  const TG=l=>/dead high/.test(l)?['high','▲']:/dead low/.test(l)?['low','▼']:/rising, low/.test(l)?['low ↗','↗']:/rising/.test(l)?['mid ↗','↗']:/falling, high/.test(l)?['mid ↘','↘']:/falling/.test(l)?['low ↘','↘']:[l,'·'];
+  shown.forEach(h=>{
+    const en=energyOfHour(h);const w=WK[h.wkind]||WK.unknown;const tcol=h.tf.f>=.9?'var(--green)':h.tf.f>=.75?'var(--gold)':'var(--red)';const [tx,tg]=TG(h.tf.label);
+    const tip=()=>`<b>${fmtHr(h.t)}</b>${h.past?' · already passed':''}<br><span style="color:var(--teal)">swell energy ${en.toFixed(1)}</span><br>wind ${h.spd!=null?Math.round(h.spd)+' kn '+compass(h.wdir)+', '+h.wkind:'unknown'} · keeps ${Math.round((h.wf??1)*100)}%<br>tide ${h.tf.label} · keeps ${Math.round(h.tf.f*100)}%<br><b>score ${h.score.toFixed(1)}</b> = ${en.toFixed(1)} × ${Math.round((h.wf??1)*100)}% × ${Math.round(h.tf.f*100)}%`;
+    const hook=el=>{el.addEventListener('pointerenter',e=>tipShow(tip(),e));el.addEventListener('pointermove',e=>tipShow(tip(),e));el.addEventListener('pointerleave',tipHide);return el;};
+    const d=document.createElement('div');d.className='hb';d.style.height=Math.max(3,h.score/10*SH).toFixed(0)+'px';if(h.daylight)d.style.background=cssCol(h.score);else d.classList.add('night');if(h.past)d.classList.add('gone');if(inWin(h)){d.classList.add('pulse');d.style.setProperty('--glow',glowOf(h.score));}
+    strip.appendChild(hook(d));
+    const s=document.createElement('span');s.textContent=new Date(h.t).getHours();if(inWin(h))s.className='hot';else if(h.past)s.className='gone';hrs.appendChild(s);
+    const cell=(html,style)=>{const c=document.createElement('div');c.className='c'+(h.past?' gone':'');c.innerHTML=html;if(style)c.style.cssText=style;return hook(c);};
+    rE.appendChild(cell(`<span class="tx">${en.toFixed(1)}</span><span class="gl">${Math.round(en)}</span>`,`background:rgba(46,196,182,${(0.08+0.42*Math.min(10,en)/10).toFixed(2)});color:#F2EFE6`));
+    rW.appendChild(cell(h.spd!=null?`${Math.round(h.spd)}<small>${w[0]}</small>`:'—',`color:${w[1]}`));
+    rT.appendChild(cell(`<span class="tx">${tx}</span><span class="gl">${tg}</span>`,`color:${tcol};font-size:${tx.length>5?'11px':''}`));
+  });
   const bd=dl.length?bestOfDay(selDay):null;
-  $('d-why').innerHTML=`<span><span style="color:var(--teal)">━●</span> swell energy, before wind and tide</span><span><span style="color:#A7A49B">▮</span> bars: final score</span>`+(bd?whyText(bd).split(', ').map(w=>`<span><span style="color:${cssCol(bd.score)}">■</span> ${w}</span>`).join(''):'');
+  $('d-why').innerHTML=`<span>Score = swell energy, minus what the wind and tide take away. Hover any hour to see the math.</span>`+(bd?whyText(bd).split(', ').map(w=>`<span><span style="color:${cssCol(bd.score)}">■</span> ${w}</span>`).join(''):'');
   const tb=$('htab').querySelector('tbody');tb.innerHTML='';
   dh.forEach(h=>{
     const tr=document.createElement('tr');if(!h.daylight)tr.className='night';if(inWin(h))tr.classList.add('hotrow');
@@ -944,8 +970,8 @@ function renderDetail(){
   const tt=$('tides');const S=SPOTS[spotKey];
   if(data.tides){const dt=data.tides.filter(p=>p.t.startsWith(selDay));tt.textContent=S.tide.name+' tides: '+(dt.length?dt.map(p=>`${p.type==='H'?'High':'Low'} ${p.t.slice(11,16)} (${p.v.toFixed(1)} ft)`).join(' · '):'none listed');}
   else tt.textContent='Tides unavailable.';
-  // size the bars against the strip's final height (the text above and below can change it), then draw the energy line on the same scale
-  {const H=strip.clientHeight;[...strip.children].filter(e=>e.tagName==='DIV').forEach((b,i)=>{b.style.height=Math.max(3,shown[i].score/10*H).toFixed(0)+'px';});lastStripH=H;drawEnergyLine(shown);}
+  // size the bars against the strip's final height (the text above and below can change it)
+  {const H=strip.clientHeight;strip.querySelectorAll('.hb').forEach((b,i)=>{b.style.height=Math.max(3,shown[i].score/10*H).toFixed(0)+'px';});lastStripH=H;lastStripW=strip.clientWidth;}
   syncPulses();
 }
 function confidenceFor(h){
