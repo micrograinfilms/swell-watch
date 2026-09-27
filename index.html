@@ -98,7 +98,7 @@ tr.hotrow td:first-child{box-shadow:inset 3px 0 0 var(--amber)}
 .selarrow{display:block;margin:0 auto 4px;width:24px;height:16px}
 .selarrow polygon{fill:var(--sel)}
 #forecast{--sel:var(--line)}
-.stem{display:flex;gap:6px;height:18px}
+.stem{display:flex;gap:6px;height:42px;margin:-12px 0}
 .stem div{flex:1;display:flex;justify-content:center}
 .stem i{display:block;width:3px;height:100%;background:var(--sel)}
 .drawer{border:2px solid var(--sel);background:var(--panel2);padding:16px 18px;display:flex;flex-direction:column;gap:10px;min-width:0}
@@ -195,7 +195,7 @@ button.x{font:inherit;background:none;border:0;color:var(--red);cursor:pointer;p
   .c5,.c7,.c8,.c4,.c3{grid-column:span 12}
   .col{display:contents}
   #verdict,#facepanel,#reality{grid-column:span 12}
-  #verdict{order:1}#board{order:2}#facepanel{order:3}#forecast{order:4}#reality{order:5}#logpanel{order:6}#sessionlog{order:7}.grid>section:not(#board):not(#forecast):not(#logpanel):not(#sessionlog){order:8}
+  #verdict{order:1}#facepanel{order:2}#forecast{order:3}#board{order:4}#reality{order:5}#logpanel{order:6}#sessionlog{order:7}.grid>section:not(#board):not(#forecast):not(#logpanel):not(#sessionlog){order:8}
   .drawer{padding:12px}
   .dials{grid-template-columns:repeat(2,minmax(0,1fr))}
   .rc{grid-template-columns:minmax(0,1fr)}
@@ -254,10 +254,6 @@ button.x{font:inherit;background:none;border:0;color:var(--red);cursor:pointer;p
 </header>
 
 <div class="grid">
-  <section class="pnl c12" id="board"><i class="c1"></i><i class="c2"></i>
-    <div class="row" style="align-items:center"><span class="lbl">All spots · ten days · <span style="color:var(--amber)">click a square to open that spot and day</span></span><span class="lbl"><span id="bd-status"></span> Score out of 10 · <span style="color:var(--teal)">aqua = wave face</span></span></div>
-    <div class="board" id="bd"></div>
-  </section>
 
   <div class="col c4">
   <section class="pnl" id="verdict"><i class="c1"></i><i class="c2"></i>
@@ -344,6 +340,11 @@ button.x{font:inherit;background:none;border:0;color:var(--red);cursor:pointer;p
       <p class="small det">Heights in feet unless switched to metres, periods in seconds, directions are where the swell comes from. Green tags mark components inside this spot's direction window.</p>
     </details>
     </div>
+  </section>
+
+  <section class="pnl c12" id="board"><i class="c1"></i><i class="c2"></i>
+    <div class="row" style="align-items:center"><span class="lbl">All spots · ten days · <span style="color:var(--amber)">click a square to open that spot and day</span></span><span class="lbl"><span id="bd-status"></span> Score out of 10 · <span style="color:var(--teal)">aqua = wave face</span></span></div>
+    <div class="board" id="bd"></div>
   </section>
 
   <section class="pnl c4" id="logpanel"><i class="c1"></i><i class="c2"></i>
