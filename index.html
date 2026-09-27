@@ -100,6 +100,7 @@ tr.hotrow td:first-child{box-shadow:inset 3px 0 0 var(--amber)}
 @media (min-width:901px){#forecast .days{flex:1 1 250px;height:auto;min-height:250px}#forecast .drawer{flex:1 1 auto}#forecast .strip{flex:1 1 150px;height:auto;min-height:150px}}
 .day .barwrap{flex:none}
 .day .bar{width:100%;min-height:3px;opacity:.85}
+.day.over .bar,.day.over .sc{opacity:.35}
 .day.sel .bar{opacity:1;outline:2px solid var(--sel);outline-offset:2px}
 .day:focus-visible{outline:2px solid var(--amber)}
 
@@ -113,6 +114,8 @@ tr.hotrow td:first-child{box-shadow:inset 3px 0 0 var(--amber)}
 .strip{display:grid;grid-template-columns:repeat(13,1fr);gap:4px;align-items:end;height:150px}
 .strip div{background:var(--line2);min-height:3px}
 .strip div.night{opacity:.35}
+.strip div.gone{opacity:.3}
+.hours span.gone{opacity:.45}
 .hours{font-size:12px;color:#A7A49B;display:grid;grid-template-columns:repeat(13,1fr);gap:4px}
 .hours span{text-align:center}
 .why{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:10px;letter-spacing:.06em;color:#A7A49B}
@@ -657,9 +660,9 @@ function compute(){
     const ests=[sA,sB,sC,sD].filter(v=>v!=null);
     const score=Math.round(ests.reduce((a,b)=>a+b,0)/ests.length*10)/10;
     const day=t.slice(0,10);const s=sun[day];
-    const daylight=s?(t>=s.rise.slice(0,13)+':00'&&t<=s.set.slice(0,13)+':59'):true;
+    const daylight=s?(t>=s.rise.slice(0,13)+':00'&&t<=s.set.slice(0,13)+':59'):true;const past=t<nowT;
     const r1=v=>v==null?null:Math.round(v*10)/10;
-    return {t,day,daylight,A,B,C,D,sA:r1(sA),sB:r1(sB),sC:r1(sC),sD:r1(sD),score,spd,wdir,gust,wkind:wf.kind,tf};
+    return {t,day,daylight,past,A,B,C,D,sA:r1(sA),sB:r1(sB),sC:r1(sC),sD:r1(sD),score,spd,wdir,gust,wkind:wf.kind,tf};
   });
   realityCheck=null;
   if(bIn&&nowI>=0){
@@ -691,15 +694,16 @@ function comp(p){return p?`${fmtH(p.H)} ${p.T.toFixed(0)}s ${compass(p.D)} ${Mat
 function fmtS(v){return v==null?'—':v.toFixed(1);}
 function cssCol(s){return s>=7?'var(--green)':s>=4?'var(--gold)':'var(--red)';}
 function hexCol(s){return s>=7?'#3DDC84':s>=4?'#E6B93D':'#FF5C4D';}
-function bestOfDay(d){const dl=hours.filter(h=>h.day===d);const day=dl.filter(h=>h.daylight);return (day.length?day:dl).reduce((a,b)=>b.score>a.score?b:a);}
-function bestOverall(){const dl=hours.filter(h=>h.daylight);return dl.length?dl.reduce((a,b)=>b.score>a.score?b:a):null;}
+function bestOfDay(d){const dl=hours.filter(h=>h.day===d);const fut=dl.filter(h=>h.daylight&&!h.past);const day=dl.filter(h=>h.daylight);return (fut.length?fut:day.length?day:dl).reduce((a,b)=>b.score>a.score?b:a);}
+function dayOver(d){return !hours.some(h=>h.day===d&&h.daylight&&!h.past);}
+function bestOverall(){const dl=hours.filter(h=>h.daylight&&!h.past);return dl.length?dl.reduce((a,b)=>b.score>a.score?b:a):null;}
 
 function glowOf(s){return s>=7?'rgba(61,220,132,.75)':s>=4?'rgba(230,185,61,.75)':'rgba(255,92,77,.75)';}
 function windowOf(list){ // contiguous daylight run around the best hour, same rule as the verdict
-  const dl=list.filter(h=>h.daylight);if(!dl.length)return null;
+  const ok=h=>h.daylight&&!h.past;const dl=list.filter(ok);if(!dl.length)return null;
   const best=dl.reduce((a,b)=>b.score>a.score?b:a);const i=list.indexOf(best);let a=i,b=i;const floor=Math.max(4,best.score-2);
-  while(a>0&&list[a-1].daylight&&list[a-1].score>=floor)a--;
-  while(b<list.length-1&&list[b+1].daylight&&list[b+1].score>=floor)b++;
+  while(a>0&&ok(list[a-1])&&list[a-1].score>=floor)a--;
+  while(b<list.length-1&&ok(list[b+1])&&list[b+1].score>=floor)b++;
   return {from:list[a].t,to:list[b].t,best};
 }
 function syncPulses(){ // start every pulse at the same point in its cycle so they breathe together
@@ -714,7 +718,7 @@ function renderDays(){
   const top=bestOverall();const topDay=top?top.day:null;
   days.forEach(d=>{
     const best=bestOfDay(d);const dt=new Date(d+'T12:00');const isTop=d===topDay;
-    const b=document.createElement('button');b.type='button';b.className='day'+(d===selDay?' sel':'');b.setAttribute('aria-label',`${fmtDay(d)}, score ${best.score.toFixed(1)}`);
+    const b=document.createElement('button');b.type='button';b.className='day'+(d===selDay?' sel':'')+(dayOver(d)?' over':'');b.setAttribute('aria-label',`${fmtDay(d)}, score ${best.score.toFixed(1)}`);
     b.innerHTML=`${d===selDay?'<svg class="selarrow" viewBox="0 0 24 16" aria-hidden="true"><polygon points="0,0 24,0 12,16"></polygon></svg>':''}<div class="sc${isTop?' hot':''}" style="color:${cssCol(best.score)}">${best.score.toFixed(1)}</div><div class="dn">${fmtDayShort(d)}<small>${dt.toLocaleDateString('en-US',{month:'short',day:'numeric'})}</small></div><div class="barwrap"><div class="bar${isTop?' pulse':''}" style="height:${Math.max(3,best.score/10*barMax).toFixed(0)}px;background:${cssCol(best.score)};--glow:${glowOf(best.score)}"></div></div>`;
     b.addEventListener('click',()=>{selDay=d;renderDays();renderDetail();});
     el.appendChild(b);
@@ -754,8 +758,8 @@ function renderDetail(){
   const win=windowOf(all);const inWin=h=>win&&h.t>=win.from&&h.t<=win.to;
   const shown=dl.length?dl:all.filter(h=>{const hr=new Date(h.t).getHours();return hr>=6&&hr<=18;});
   strip.style.gridTemplateColumns=hrs.style.gridTemplateColumns=`repeat(${shown.length},minmax(0,1fr))`;
-  shown.forEach(h=>{const d=document.createElement('div');d.style.height=Math.max(3,h.score/10*SH).toFixed(0)+'px';if(h.daylight)d.style.background=cssCol(h.score);else d.className='night';if(inWin(h)){d.classList.add('pulse');d.style.setProperty('--glow',glowOf(h.score));}d.title=`${fmtHr(h.t)} score ${h.score}`;strip.appendChild(d);const s=document.createElement('span');s.textContent=new Date(h.t).getHours();if(inWin(h))s.className='hot';hrs.appendChild(s);});
-  const bd=dl.length?dl.reduce((a,b)=>b.score>a.score?b:a):null;
+  shown.forEach(h=>{const d=document.createElement('div');d.style.height=Math.max(3,h.score/10*SH).toFixed(0)+'px';if(h.daylight)d.style.background=cssCol(h.score);else d.className='night';if(h.past){d.classList.add('gone');d.title='already passed';}if(inWin(h)){d.classList.add('pulse');d.style.setProperty('--glow',glowOf(h.score));}d.title=`${fmtHr(h.t)} score ${h.score}`;strip.appendChild(d);const s=document.createElement('span');s.textContent=new Date(h.t).getHours();if(inWin(h))s.className='hot';else if(h.past)s.className='gone';hrs.appendChild(s);});
+  const bd=dl.length?bestOfDay(selDay):null;
   $('d-why').innerHTML=bd?whyText(bd).split(', ').map(w=>`<span><span style="color:${cssCol(bd.score)}">■</span> ${w}</span>`).join(''):'';
   const tb=$('htab').querySelector('tbody');tb.innerHTML='';
   dh.forEach(h=>{
@@ -786,8 +790,8 @@ function confidenceFor(h){
 function renderVerdict(){
   const best=bestOverall();if(!best)return;
   const idx=hours.indexOf(best);let a=idx,b=idx;const floor=Math.max(4,best.score-2);
-  while(a>0&&hours[a-1].daylight&&hours[a-1].score>=floor)a--;
-  while(b<hours.length-1&&hours[b+1].daylight&&hours[b+1].score>=floor)b++;
+  while(a>0&&hours[a-1].daylight&&!hours[a-1].past&&hours[a-1].score>=floor)a--;
+  while(b<hours.length-1&&hours[b+1].daylight&&!hours[b+1].past&&hours[b+1].score>=floor)b++;
   const verb=best.score>=7?'GO':best.score>=4?'MAYBE':'SKIP';
   const c=hexCol(best.score);
   $('g-arc').setAttribute('stroke-dasharray',arcDash(best.score/10,62));$('g-arc').setAttribute('stroke',c);
