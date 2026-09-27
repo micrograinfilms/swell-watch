@@ -152,7 +152,8 @@ tr.hotrow td:first-child{box-shadow:inset 3px 0 0 var(--amber)}
 .dial .t2{font-size:12px;color:#A7A49B;line-height:1.35}
 .dials{border-top:1px dashed var(--line);padding-top:14px}
 .dial svg{flex:none}
-.strip{display:grid;grid-template-columns:repeat(13,1fr);gap:4px;align-items:end;height:150px}
+.strip{display:grid;grid-template-columns:repeat(13,1fr);gap:4px;align-items:end;height:150px;position:relative}
+.strip svg.enl{position:absolute;left:0;top:0;pointer-events:none;overflow:visible}
 .strip div{background:var(--line2);min-height:3px}
 .strip div.night{opacity:.35}
 .strip div.gone{opacity:.3}
@@ -827,7 +828,7 @@ function syncPulses(){ // start every pulse at the same point in its cycle so th
   const off=-(performance.now()%2080)+'ms';
   document.querySelectorAll('.conf.lo,.pulse,.hot').forEach(e=>{e.style.animationDelay=off;});
 }
-let lastDaysH=0,lastStripH=0;
+let lastDaysH=0,lastStripH=0,lastStripW=0;
 function renderDays(){
   const days=[...new Set(hours.map(h=>h.day))].filter(d=>d>=todayStr()).slice(0,10);
   const el=$('days');el.innerHTML='';
@@ -883,15 +884,28 @@ async function loadBoard(){
 }
 function tipShow(html,e){const t=$('tip');t.innerHTML=html;t.style.display='block';const x=Math.max(8,Math.min(window.innerWidth-t.offsetWidth-8,e.clientX+14)),y=Math.max(8,e.clientY-t.offsetHeight-12);t.style.left=x+'px';t.style.top=y+'px';}
 function tipHide(){$('tip').style.display='none';}
+function energyOfHour(h){
+  const parts=[[h.A?energyScore(h.A.E,P.eMin,P.eGood,P.eGreat):null,P.wA],[h.B?energyScore(h.B.E,P.lMin,P.lGood,P.lGreat):null,P.wB],[h.C?energyScore(h.C.E,P.eMin,P.eGood,P.eGreat):null,P.wC],[h.D?energyScore(h.D.E,P.eMin,P.eGood,P.eGreat):null,P.wD]].filter(([v,w])=>v!=null&&w>0);
+  const ws=parts.reduce((a,[,w])=>a+w,0);return ws?parts.reduce((a,[v,w])=>a+v*w,0)/ws:0;
+}
+function drawEnergyLine(shown){
+  const strip=$('strip');const old=strip.querySelector('svg.enl');if(old)old.remove();
+  const bars=[...strip.children].filter(e=>e.tagName==='DIV');if(!bars.length)return;
+  const W=strip.clientWidth,H=strip.clientHeight;
+  const pts=bars.map((b,i)=>[b.offsetLeft+b.offsetWidth/2,H-Math.max(0,Math.min(10,energyOfHour(shown[i])))/10*H]);
+  const svg=document.createElementNS('http://www.w3.org/2000/svg','svg');svg.setAttribute('class','enl');svg.setAttribute('width',W);svg.setAttribute('height',H);svg.setAttribute('aria-hidden','true');
+  svg.innerHTML=`<polyline points="${pts.map(p=>p[0].toFixed(1)+','+p[1].toFixed(1)).join(' ')}" fill="none" stroke="#2EC4B6" stroke-width="2.5" stroke-linejoin="round"></polyline>`+pts.map((p,i)=>`<circle cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="4" fill="#2EC4B6" stroke="#0E0E12" stroke-width="2"${shown[i].past?' opacity=".45"':''}></circle>`).join('');
+  strip.appendChild(svg);lastStripW=W;
+}
 function arcDash(frac,r){const c=2*Math.PI*r;return `${Math.max(0,Math.min(1,frac))*c} ${c}`;}
 function renderDials(){
   const el=$('dials');if(!hours.length){el.innerHTML='';return;}
   const best=selDay?bestOfDay(selDay):bestOverall();if(!best){el.innerHTML='';return;}
   const S=SPOTS[spotKey];const at=`at ${new Date(best.t).getHours()} h`;const W=68;
   const lab=(name,main,sub,subCol)=>`<div style="min-width:0"><div class="lbl">${name} ${at}</div><div class="t"><b>${main}</b></div><div class="t2"${subCol?` style="color:${subCol}"`:''}>${sub}</div></div>`;
-  const eA=energyScore(best.A.E,P.eMin,P.eGood,P.eGreat);const eB=best.B?energyScore(best.B.E,P.lMin,P.lGood,P.lGreat):null;const en=eB==null?eA:(eA+eB)/2;
+  const en=energyOfHour(best);
   const top=best.A.parts[0];
-  const swell=`<div class="dial"><svg width="${W}" height="${W}" viewBox="0 0 56 56" aria-label="Swell energy ${en.toFixed(1)} of 10"><circle cx="28" cy="28" r="22" fill="none" stroke="#1E1E24" stroke-width="6"></circle><circle cx="28" cy="28" r="22" fill="none" stroke="#2EC4B6" stroke-width="6" stroke-dasharray="${arcDash(en/10,22)}" transform="rotate(-90 28 28)"></circle><text x="28" y="32" text-anchor="middle" font-size="11" fill="#F2EFE6">${en.toFixed(1)}</text></svg>${lab('Swell',top?`${fmtH(top.H)} @ ${top.T.toFixed(0)} s`:'none aligned',top?`${compass(top.D)} ${Math.round(top.D)}° · forecast`:'forecast')}</div>`;
+  const swell=`<div class="dial"><svg width="${W}" height="${W}" viewBox="0 0 56 56" aria-label="Swell energy ${en.toFixed(1)} of 10"><circle cx="28" cy="28" r="22" fill="none" stroke="#1E1E24" stroke-width="6"></circle><circle cx="28" cy="28" r="22" fill="none" stroke="#2EC4B6" stroke-width="6" stroke-dasharray="${arcDash(en/10,22)}" transform="rotate(-90 28 28)"></circle><text x="28" y="30" text-anchor="middle" font-size="11" fill="#F2EFE6">${en.toFixed(1)}</text><text x="28" y="39" text-anchor="middle" font-size="5.5" letter-spacing=".6" fill="#7A7A85">ENERGY</text></svg>${lab('Swell',top?`${fmtH(top.H)} @ ${top.T.toFixed(0)} s`:'none aligned',top?`${compass(top.D)} ${Math.round(top.D)}° · forecast`:'forecast')}</div>`;
   // wind: rotate so that the middle of the offshore arc points toward the sea (up)
   const offC=(P.offLo+P.offHi)/2;const rot=best.wdir==null?0:((best.wdir-offC)+180)%360; // arrow shows where wind blows TO
   const wcol=best.wkind==='offshore'||best.wkind==='calm'?'#3DDC84':best.wkind==='cross'?'#E6B93D':'#FF5C4D';
@@ -915,9 +929,9 @@ function renderDetail(){
   const win=windowOf(all);const inWin=h=>win&&h.t>=win.from&&h.t<=win.to;
   const shown=dl.length?dl:all.filter(h=>{const hr=new Date(h.t).getHours();return hr>=6&&hr<=18;});
   strip.style.gridTemplateColumns=hrs.style.gridTemplateColumns=`repeat(${shown.length},minmax(0,1fr))`;
-  shown.forEach(h=>{const d=document.createElement('div');d.style.height=Math.max(3,h.score/10*SH).toFixed(0)+'px';if(h.daylight)d.style.background=cssCol(h.score);else d.className='night';if(h.past){d.classList.add('gone');d.title='already passed';}if(inWin(h)){d.classList.add('pulse');d.style.setProperty('--glow',glowOf(h.score));}d.title=`${fmtHr(h.t)} score ${h.score}`;strip.appendChild(d);const s=document.createElement('span');s.textContent=new Date(h.t).getHours();if(inWin(h))s.className='hot';else if(h.past)s.className='gone';hrs.appendChild(s);});
+  shown.forEach(h=>{const d=document.createElement('div');d.style.height=Math.max(3,h.score/10*SH).toFixed(0)+'px';if(h.daylight)d.style.background=cssCol(h.score);else d.className='night';if(h.past){d.classList.add('gone');d.title='already passed';}if(inWin(h)){d.classList.add('pulse');d.style.setProperty('--glow',glowOf(h.score));}d.removeAttribute('title');{const en=energyOfHour(h);const tip=()=>`<b>${fmtHr(h.t)}</b>${h.past?' · already passed':''}<br>score ${h.score.toFixed(1)} / 10<br><span style="color:var(--teal)">swell energy ${en.toFixed(1)} / 10</span><br>${faceText(h).replace(/<[^>]+>guess<\/span>/,' (guess)')||''}`;d.addEventListener('pointerenter',e=>tipShow(tip(),e));d.addEventListener('pointermove',e=>tipShow(tip(),e));d.addEventListener('pointerleave',tipHide);}strip.appendChild(d);const s=document.createElement('span');s.textContent=new Date(h.t).getHours();if(inWin(h))s.className='hot';else if(h.past)s.className='gone';hrs.appendChild(s);});
   const bd=dl.length?bestOfDay(selDay):null;
-  $('d-why').innerHTML=bd?whyText(bd).split(', ').map(w=>`<span><span style="color:${cssCol(bd.score)}">■</span> ${w}</span>`).join(''):'';
+  $('d-why').innerHTML=`<span><span style="color:var(--teal)">━●</span> swell energy, before wind and tide</span><span><span style="color:#A7A49B">▮</span> bars: final score</span>`+(bd?whyText(bd).split(', ').map(w=>`<span><span style="color:${cssCol(bd.score)}">■</span> ${w}</span>`).join(''):'');
   const tb=$('htab').querySelector('tbody');tb.innerHTML='';
   dh.forEach(h=>{
     const tr=document.createElement('tr');if(!h.daylight)tr.className='night';if(inWin(h))tr.classList.add('hotrow');
@@ -930,6 +944,8 @@ function renderDetail(){
   const tt=$('tides');const S=SPOTS[spotKey];
   if(data.tides){const dt=data.tides.filter(p=>p.t.startsWith(selDay));tt.textContent=S.tide.name+' tides: '+(dt.length?dt.map(p=>`${p.type==='H'?'High':'Low'} ${p.t.slice(11,16)} (${p.v.toFixed(1)} ft)`).join(' · '):'none listed');}
   else tt.textContent='Tides unavailable.';
+  // size the bars against the strip's final height (the text above and below can change it), then draw the energy line on the same scale
+  {const H=strip.clientHeight;[...strip.children].filter(e=>e.tagName==='DIV').forEach((b,i)=>{b.style.height=Math.max(3,shown[i].score/10*H).toFixed(0)+'px';});lastStripH=H;drawEnergyLine(shown);}
   syncPulses();
 }
 function confidenceFor(h){
@@ -1200,7 +1216,7 @@ async function boot(){
 }
 if(window.ResizeObserver){ // re-scale the bars whenever a chart changes size
   new ResizeObserver(()=>{if(hours.length&&Math.abs($('days').clientHeight-lastDaysH)>2)renderDays();}).observe($('days'));
-  new ResizeObserver(()=>{if(hours.length&&selDay&&Math.abs($('strip').clientHeight-lastStripH)>2)renderDetail();}).observe($('strip'));
+  new ResizeObserver(()=>{if(hours.length&&selDay&&(Math.abs($('strip').clientHeight-lastStripH)>2||Math.abs($('strip').clientWidth-lastStripW)>2))renderDetail();}).observe($('strip'));
 }
 boot();
 })();
