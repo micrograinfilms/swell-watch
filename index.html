@@ -262,7 +262,7 @@ button.x{font:inherit;background:none;border:0;color:var(--red);cursor:pointer;p
       </svg>
       <div style="display:flex;flex-direction:column;gap:8px;min-width:0;flex:1">
         <div class="verb blink" id="v-verb" style="color:var(--amber)">LOADING</div>
-        <div class="when" id="v-when">0 of 7 sources in</div>
+        <div class="when" id="v-when">0 of 6 sources in</div>
         <div class="conf" id="v-conf" style="visibility:hidden">Confidence …</div>
       </div>
     </div>
@@ -1173,8 +1173,10 @@ async function boot(){
   renderSpotButtons();fillTune();initLog();
   $('tog-detail').addEventListener('click',()=>{const on=document.body.classList.toggle('showdet');$('tog-detail').textContent=on?'Hide the four estimates':'Show the four estimates';});
   $('tog-night').addEventListener('click',()=>{showNight=!showNight;$('tog-night').textContent=showNight?'Hide night hours':'Show night hours';renderDetail();});
-  $('v-spot').textContent=SPOTS[spotKey].name.toUpperCase();setLoading(7);
-  await Promise.all([loadSpotData(),syncLogFromSheet().finally(progTick)]);
+  $('v-spot').textContent=SPOTS[spotKey].name.toUpperCase();setLoading(6);renderBoard();
+  // the sheet can take several seconds to answer; show the forecast as soon as it's in and fold the log in when it arrives
+  const sheet=syncLogFromSheet().then(()=>{if(hours.length)compute();else renderLog();});
+  await loadSpotData();
   doneLoading();
   if(data.swell&&data.wind){compute();loadBoard();}
   else{$('v-verb').textContent='NO DATA';$('v-when').textContent='Forecast could not load';$('v-detail').textContent='A data source did not answer. Reload.';}
