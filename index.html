@@ -612,7 +612,7 @@ async function loadBuoyRaw(id){
     if(!parts.length&&wvht!=null&&dpd!=null&&mwd!=null)parts.push({H:wvht,T:dpd,D:mwd});
     const wrow=rev.find(r=>r[10]!=null)||[];
     out={t,wvht,parts,ws:wrow[10]==null?null:wrow[10]*1.94384,wdir:wrow[11]};
-    const useSw=rows.filter(r=>r[4]!=null).length>=rows.filter(r=>r[1]!=null).length*0.6;
+    const useSw=rows.filter(r=>r[4]!=null).length>=8; // swell height is reported less often than total height, but it's what Measured now shows
     out.series=rows.map(r=>({t:r[0],H:useSw?r[4]:r[1],T:useSw?r[5]:r[2]})).filter(x=>x.H!=null);out.seriesKind=useSw?'swell height':'wave height';
   }else{
     const last=rev.find(r=>r[1]!=null&&r[2]!=null&&r[3]!=null)||rev.find(r=>r[1]!=null);
