@@ -72,6 +72,7 @@ h1,h2{margin:0;font-weight:400}
 @media (prefers-reduced-motion:reduce){.blink,#gauge.loading #g-verb{animation:none}#g-arc{transition:none}}
 .spotname{font-family:var(--pix);font-size:22px;line-height:1;color:var(--teal);letter-spacing:.02em}
 .conf{display:inline-block;align-self:flex-start;font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;padding:6px 10px;color:var(--bg);background:var(--dim);margin-top:4px}
+.conf.sm{font-size:10px;padding:4px 8px;margin-top:0;align-self:center}
 .conf.hi{background:var(--green)}.conf.md{background:var(--gold)}.conf.lo{background:var(--red);--glow:rgba(255,92,77,.75)}
 @keyframes pulse{0%,100%{filter:brightness(1);box-shadow:0 0 0 0 var(--glow,rgba(255,160,46,.7))}50%{filter:brightness(1.4);box-shadow:0 0 18px 3px var(--glow,rgba(255,160,46,.7))}}
 @keyframes pulsetext{0%,100%{text-shadow:0 0 0 rgba(255,160,46,0)}50%{text-shadow:0 0 12px rgba(255,160,46,.9),0 0 2px rgba(255,160,46,.9)}}
@@ -325,7 +326,7 @@ button.x{font:inherit;background:none;border:0;color:var(--red);cursor:pointer;p
     <div class="days" id="days"></div>
     <div class="stem" id="stem" aria-hidden="true"></div>
     <div class="drawer" id="detail">
-    <div class="row"><span class="dtitle" id="d-title">Hour by hour</span><span class="lbl" id="d-sun">6 to 18 h</span></div>
+    <div class="row" style="align-items:center"><span style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;min-width:0"><span class="dtitle" id="d-title">Hour by hour</span><span class="conf sm" id="d-conf"></span></span><span class="lbl" id="d-sun">6 to 18 h</span></div>
     <div class="strip" id="strip"></div>
     <div class="hours" id="hours"></div>
     <div class="why" id="d-why"></div>
@@ -908,6 +909,7 @@ function renderDials(){
 function renderDetail(){
   const all=hours.filter(h=>h.day===selDay);const dh=all.filter(h=>showNight||h.daylight);
   $('d-title').textContent=`${fmtDay(selDay)} · hour by hour`;
+  {const bd=bestOfDay(selDay);const cf=confidenceFor(bd);const dc=$('d-conf');dc.className='conf sm '+cf.cls;dc.textContent='Confidence '+cf.label;dc.title=`For ${fmtHr(bd.t)}, this day's best hour: `+cf.reasons.join('; ');}
   const dl=all.filter(h=>h.daylight);const sn=SUN[selDay];$('d-sun').textContent=sn?`sunrise ${sn.rise.slice(11,16)} · sunset ${sn.set.slice(11,16)}`:'';
   const strip=$('strip'),hrs=$('hours');strip.innerHTML='';hrs.innerHTML='';const SH=strip.clientHeight||150;lastStripH=SH;
   const win=windowOf(all);const inWin=h=>win&&h.t>=win.from&&h.t<=win.to;
